@@ -1,5 +1,7 @@
 ﻿@page "/weather"
+@using NorthernIrelandPowerOutages.Models
 @attribute [StreamRendering]
+@inject HttpClient http
 
 <PageTitle>Weather</PageTitle>
 
@@ -36,11 +38,25 @@ else
     </table>
 }
 
+@if (faults is not null)
+{
+    @foreach (var fault in faults)
+    {
+        <p>@fault.IncidentCategoryCustomerFriendlyDescription"</p>
+    }
+}
+
+
 @code {
+
+    private List<FaultModel>? faults;
+
     private WeatherForecast[]? forecasts;
 
     protected override async Task OnInitializedAsync()
     {
+        faults = await http.GetFromJsonAsync<List<FaultModel>>("https://localhost:7146/faults");
+
         // Simulate asynchronous loading to demonstrate streaming rendering
         await Task.Delay(500);
 
