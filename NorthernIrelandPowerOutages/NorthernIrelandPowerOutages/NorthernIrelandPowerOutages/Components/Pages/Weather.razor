@@ -42,7 +42,10 @@ else
 {
     @foreach (var fault in faults)
     {
-        <p>@fault.IncidentCategoryCustomerFriendlyDescription"</p>
+        @foreach (var message in fault.OutageMessage)
+        {
+            <p>@message.NumCustAffected"</p>
+        }
     }
 }
 

@@ -1,14 +1,67 @@
 ﻿@page "/"
+@using Infrastructure.Helpers
+@using NorthernIrelandPowerOutages.Models
+@inject HttpClient Http
+@inject IHttpClientFactory ClientFactory
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div style="height: 100vh; width: 100%;">
+    <GoogleMap ApiKey="AIzaSyDFMnsCfQEvTnzYiqVZD1rwK3ZnFLtTziI"
+    Center="new GoogleMapCenter(54.12, -6.24)"
+    Height="100"
+    Width="100"
+    HeightUnit="@Percentage"
+    WidthUnit="@Percentage" 
+    Markers="@markers"
+    Zoom="8" />
+</div>
 
-<GoogleMap ApiKey="AIzaSyDFMnsCfQEvTnzYiqVZD1rwK3ZnFLtTziI"
-           Center="new GoogleMapCenter(54.12, -6.24)"
-           Height="400"
-           Width="100"
-           Zoom="8" />
+@code
+{
+    [Parameter]
+    public Unit Percentage { get; set; } = Unit.Percentage;
 
+    List<GoogleMapMarker> markers = new();
 
-Welcome to your new app.
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7146/faults");
+
+        if (response is null)
+        {
+            return;
+        }
+
+        foreach (var outageMessage in response.OutageMessage)
+        {
+            if (!string.IsNullOrWhiteSpace(outageMessage.Point.Coordinates))
+            {
+                (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
+
+                markers.Add(new GoogleMapMarker()
+                {
+                    Position = new GoogleMapMarkerPosition(latitude, longitude),
+                });
+            }
+        }
+    }
+
+    public static (double Latitude, double Longitude) ParseGeoPoint(string geoPoint)
+    {
+        // Split the geoPoint string by comma
+        var coordinates = geoPoint.Split(',');
+
+        // Parse the latitude and longitude
+        if (coordinates.Length == 2)
+        {
+            double latitude = double.Parse(coordinates[0]);
+            double longitude = double.Parse(coordinates[1]);
+            return (latitude, longitude);
+        }
+        else
+        {
+            throw new ArgumentException("Invalid GeoPoint format. Expected 'latitude,longitude'");
+        }
+    }
+}

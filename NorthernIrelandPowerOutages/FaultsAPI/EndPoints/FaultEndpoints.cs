@@ -11,23 +11,27 @@ namespace FaultsAPI.EndPoints
             app.MapGet("/faults/{incidentReference}", LoadFaultByIncidentReferenceAsync);
         }
 
-        private static async  Task<IResult> LoadAllFaultsAsync(FaultData data, string? powerCutType, string? search, int? delay)
+        private static async Task<IResult> LoadAllFaultsAsync(FaultData data, string? outageType, string? search, int? delay)
         {
             var output = data.Faults;
 
-            if (powerCutType != null)
+            if (outageType != null)
             {
-                if (!Enum.TryParse<PowerCutType>(powerCutType, true, out var parsedPowerCutType))
+                if (!Enum.TryParse<OutageType>(outageType, true, out var parsedPowerCutType))
                 {
-                    return Results.BadRequest($"Invalid power cut type: {powerCutType}");
+                    return Results.BadRequest($"Invalid power cut type: {outageType}");
                 }
 
-                output.RemoveAll(x => x.PowerCutType != powerCutType);
+                data.Faults.OutageMessage = data.Faults.OutageMessage
+                    .Where(x => x.OutageType == outageType)
+                    .ToArray();
             }
 
             if (string.IsNullOrWhiteSpace(search) == false)
             {
-                output.RemoveAll(x => !x.FullPostcodeData.Contains(search, StringComparison.OrdinalIgnoreCase));
+                data.Faults.OutageMessage = data.Faults.OutageMessage
+                    .Where(x => x.PostCode != null && x.PostCode.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
             }
 
             if (delay is not null)
@@ -44,10 +48,8 @@ namespace FaultsAPI.EndPoints
             return Results.Ok(output);
         }
 
-        private static async Task<IResult> LoadFaultByIncidentReferenceAsync(FaultData data, string incidentReference, int? delay)
+        private static async Task<IResult> LoadFaultByIncidentReferenceAsync(FaultData data, string outageId, int? delay)
         {
-            var output = data.Faults.SingleOrDefault(x => x.IncidentReference == incidentReference);
-
             if (delay is not null)
             {
                 // Max delay of 5 minutes (300,000 milliseconds)
@@ -59,12 +61,13 @@ namespace FaultsAPI.EndPoints
                 await Task.Delay((int)delay);
             }
 
-            if (output == null)
+            var match = data.Faults.OutageMessage.SingleOrDefault(x => x.OutageId == outageId);
+            if (match != null)
             {
-                return Results.NotFound();
+                return Results.Ok(match);
             }
 
-            return Results.Ok(output);
+            return Results.NotFound();
         }
     }
 }

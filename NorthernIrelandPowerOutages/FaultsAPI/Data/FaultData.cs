@@ -5,7 +5,7 @@ namespace FaultsAPI.Data
 {
     public class FaultData
     {
-        public List<FaultModel> Faults { get; private set; }
+        public FaultModel Faults { get; private set; }
 
         public FaultData()
         {
@@ -20,7 +20,7 @@ namespace FaultsAPI.Data
 
             string json = File.ReadAllText(filePath);
 
-            Faults = JsonSerializer.Deserialize<List<FaultModel>>(json, options) ?? new();
+            Faults = JsonSerializer.Deserialize<FaultModel>(json, options) ?? throw new InvalidOperationException("Failed to deserialize faultdata.json into a valid FaultModel."); ;
         }
     }
 }
