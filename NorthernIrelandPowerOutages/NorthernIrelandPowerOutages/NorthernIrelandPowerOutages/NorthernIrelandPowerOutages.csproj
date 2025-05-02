@@ -8,6 +8,10 @@
 
   <ItemGroup>
     <None Remove="Models\FaultModel.cs~RFab1e1f3.TMP" />
+
+	  <Content Include="Components\Pages\Home.razor.js">
+		  <DependentUpon>Home.razor</DependentUpon>
+	  </Content>
   </ItemGroup>
 
   <ItemGroup>

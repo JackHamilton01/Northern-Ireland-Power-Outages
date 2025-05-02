@@ -3,65 +3,115 @@
 @using NorthernIrelandPowerOutages.Models
 @inject HttpClient Http
 @inject IHttpClientFactory ClientFactory
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
 <PageTitle>Home</PageTitle>
 
 <div style="height: 100vh; width: 100%;">
-    <GoogleMap ApiKey="AIzaSyDFMnsCfQEvTnzYiqVZD1rwK3ZnFLtTziI"
+    @*     <GoogleMap ApiKey="AIzaSyDFMnsCfQEvTnzYiqVZD1rwK3ZnFLtTziI"
     Center="new GoogleMapCenter(54.12, -6.24)"
     Height="100"
     Width="100"
     HeightUnit="@Percentage"
     WidthUnit="@Percentage" 
     Markers="@markers"
-    Zoom="8" />
+    Zoom="@zoomLevel"
+    @ref="googleMapRef" /> *@
+
+    <div id="map" style="height: 100vh; width: 100%;"></div>
+
+    <button @onclick="ZoomIn">Zoom In</button>
+    <button @onclick="ZoomOut">Zoom Out</button>
+
+    @if (showModal)
+    {
+        <div class="modal show d-block" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Marker Clicked</h5>
+                        <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>@googleMapPin.Name</p>
+                        <p>@googleMapPin.Latitude</p>
+                        <p>@googleMapPin.Longitude</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
 </div>
+
+
 
 @code
 {
+    private IJSObjectReference? module;
+    private DotNetObjectReference<Home> dotNetObjectReference;
+    private int zoomLevel = 8;
+    private bool showModal = false;
+    private GoogleMapPin googleMapPin;
+
     [Parameter]
     public Unit Percentage { get; set; } = Unit.Percentage;
 
-    List<GoogleMapMarker> markers = new();
+    List<GoogleMapPin> markers = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7146/faults");
-
-        if (response is null)
+        if (firstRender)
         {
-            return;
-        }
+            dotNetObjectReference = DotNetObjectReference.Create(this);
 
-        foreach (var outageMessage in response.OutageMessage)
-        {
-            if (!string.IsNullOrWhiteSpace(outageMessage.Point.Coordinates))
+            var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7146/faults");
+
+            if (response is null)
             {
-                (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
-
-                markers.Add(new GoogleMapMarker()
-                {
-                    Position = new GoogleMapMarkerPosition(latitude, longitude),
-                });
+                return;
             }
+
+            foreach (var outageMessage in response.OutageMessage)
+            {
+                if (!string.IsNullOrWhiteSpace(outageMessage.Point.Coordinates))
+                {
+                    (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
+
+                    markers.Add(new GoogleMapPin()
+                    {
+                        Name = outageMessage.PostCode,
+                        StatusMessage = outageMessage.StatusMessage,
+                        Latitude = latitude,
+                        Longitude = longitude,
+                    });
+                }
+            }
+
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
+            await module.InvokeVoidAsync("initMap", markers, dotNetObjectReference);
         }
     }
 
-    public static (double Latitude, double Longitude) ParseGeoPoint(string geoPoint)
+    [JSInvokable]
+    public void OnMarkerClicked(GoogleMapPin googleMapPin)
     {
-        // Split the geoPoint string by comma
-        var coordinates = geoPoint.Split(',');
+        this.googleMapPin = googleMapPin;
+        showModal = true;
+        StateHasChanged();
+    }
 
-        // Parse the latitude and longitude
-        if (coordinates.Length == 2)
-        {
-            double latitude = double.Parse(coordinates[0]);
-            double longitude = double.Parse(coordinates[1]);
-            return (latitude, longitude);
-        }
-        else
-        {
-            throw new ArgumentException("Invalid GeoPoint format. Expected 'latitude,longitude'");
-        }
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private async Task ZoomIn() => await JS.InvokeVoidAsync("zoomMap", 1);
+    private async Task ZoomOut() => await JS.InvokeVoidAsync("zoomMap", -1);
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 }
