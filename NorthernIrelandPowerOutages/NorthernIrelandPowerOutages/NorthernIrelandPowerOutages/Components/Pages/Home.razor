@@ -1,12 +1,23 @@
 ﻿@page "/"
 @using Infrastructure.Helpers
+@using NorthernIrelandPowerOutages.Counties
 @using NorthernIrelandPowerOutages.Models
+@using System.Text.Json
 @inject HttpClient Http
 @inject IHttpClientFactory ClientFactory
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
 <PageTitle>Home</PageTitle>
+
+<div>Outages</div>
+<div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    @foreach (var kvp in countyOutages)
+    {
+        @* <div>@kvp.Key: @kvp.Value outage(s)</div> *@
+        <div>@kvp.Key: @kvp.Value</div>
+    }
+</div>
 
 <div style="height: 100vh; width: 100%;">
     @*     <GoogleMap ApiKey="AIzaSyDFMnsCfQEvTnzYiqVZD1rwK3ZnFLtTziI"
@@ -19,10 +30,11 @@
     Zoom="@zoomLevel"
     @ref="googleMapRef" /> *@
 
-    <div id="map" style="height: 100vh; width: 100%;"></div>
-
+    <button @onclick="ToggleGeoJson" disabled="@isCalculatingCountyOutages">Toggle GeoJson</button>
     <button @onclick="ZoomIn">Zoom In</button>
     <button @onclick="ZoomOut">Zoom Out</button>
+
+    <div id="map" style="height: 100vh; width: 100%;"></div>
 
     @if (showModal)
     {
@@ -42,7 +54,6 @@
             </div>
         </div>
     }
-
 </div>
 
 
@@ -52,45 +63,106 @@
     private IJSObjectReference? module;
     private DotNetObjectReference<Home> dotNetObjectReference;
     private int zoomLevel = 8;
+
     private bool showModal = false;
-    private GoogleMapPin googleMapPin;
+    private bool isCalculatingCountyOutages = true;
+
+    private bool isCalculatingCountyOutagesStarted = false;
+    private bool mapInitialised;
+    private bool mapMarkersPlaced = false;
+
+    private GoogleMapPin? googleMapPin;
+    private CountyMatcher countyMatcher;
+
+    private Dictionary<string, int> countyOutages =
+    NorthernIrelandCounties.Counties.ToDictionary(county => county,
+    _ => 0,
+    StringComparer.OrdinalIgnoreCase);
 
     [Parameter]
     public Unit Percentage { get; set; } = Unit.Percentage;
 
     List<GoogleMapPin> markers = new();
 
+    protected async override Task OnInitializedAsync()
+    {
+        countyMatcher = await CountyMatcher.Create();
+        dotNetObjectReference = DotNetObjectReference.Create(this);
+
+        var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7146/faults");
+
+        if (response is null)
+        {
+            return;
+        }
+
+        foreach (var outageMessage in response.OutageMessage)
+        {
+            if (!string.IsNullOrWhiteSpace(outageMessage.Point.Coordinates))
+            {
+                (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
+
+                markers.Add(new GoogleMapPin()
+                {
+                    Name = outageMessage.PostCode,
+                    StatusMessage = outageMessage.StatusMessage,
+                    Latitude = latitude,
+                    Longitude = longitude,
+                });
+            }
+
+        }
+
+        mapInitialised = true;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            dotNetObjectReference = DotNetObjectReference.Create(this);
+            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
+            return;
+        }
 
-            var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7146/faults");
-
-            if (response is null)
+        if (mapInitialised && !mapMarkersPlaced)
+        {
+            if (module == null)
             {
                 return;
             }
 
-            foreach (var outageMessage in response.OutageMessage)
-            {
-                if (!string.IsNullOrWhiteSpace(outageMessage.Point.Coordinates))
-                {
-                    (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
+            await module.InvokeVoidAsync("initMap", markers, dotNetObjectReference);
+            mapMarkersPlaced = true;
+        }
 
-                    markers.Add(new GoogleMapPin()
+        if (!isCalculatingCountyOutagesStarted)
+        {
+            isCalculatingCountyOutagesStarted = true;
+            foreach (var marker in markers)
+            {
+                await Task.Run(async () =>
+                {
+                    string countyName = countyMatcher.MatchCounties(marker.Longitude, marker.Latitude);
+
+                    await InvokeAsync(() =>
                     {
-                        Name = outageMessage.PostCode,
-                        StatusMessage = outageMessage.StatusMessage,
-                        Latitude = latitude,
-                        Longitude = longitude,
+                        if (!countyOutages.ContainsKey(countyName))
+                        {
+                            return;
+                        }
+
+                        if (!countyOutages.TryGetValue(countyName, out int count))
+                        {
+                            count = 0;
+                        }
+
+                        countyOutages[countyName] = count + 1;
                     });
-                }
+                });
             }
 
-            module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
-            await module.InvokeVoidAsync("initMap", markers, dotNetObjectReference);
+            isCalculatingCountyOutages = false;
+            StateHasChanged();
         }
     }
 
@@ -107,8 +179,9 @@
         showModal = false;
     }
 
-    private async Task ZoomIn() => await JS.InvokeVoidAsync("zoomMap", 1);
-    private async Task ZoomOut() => await JS.InvokeVoidAsync("zoomMap", -1);
+    private async Task ZoomIn() => await module.InvokeVoidAsync("zoomMap", 1);
+    private async Task ZoomOut() => await module.InvokeVoidAsync("zoomMap", -1);
+    private async Task ToggleGeoJson() => await module.InvokeVoidAsync("toggleGeoJson", countyOutages);
 
     public ValueTask DisposeAsync()
     {

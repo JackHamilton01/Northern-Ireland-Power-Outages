@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.StaticFiles;
 using NorthernIrelandPowerOutages.Client.Pages;
 using NorthernIrelandPowerOutages.Components;
+using NorthernIrelandPowerOutages.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,7 @@ builder.Services.AddBlazorBootstrap();
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
+app.AddStaticFiles();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
