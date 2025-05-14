@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>2787bb29-aa4c-48fe-af37-af9d1959a388</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Services\EmailService\EmailService.csproj" />
+    <ProjectReference Include="..\..\Services\SMSMessaging\SMSMessaging.csproj" />
     <ProjectReference Include="..\NorthernIrelandPowerOutages.Client\NorthernIrelandPowerOutages.Client.csproj" />
     <PackageReference Include="Blazor.Bootstrap" Version="3.3.1" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.4" />

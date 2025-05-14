@@ -1,9 +1,16 @@
+using Infrastructure;
+using Infrastructure.ProjectSettings;
 using Microsoft.AspNetCore.StaticFiles;
+using NorthernIrelandPowerOutages;
 using NorthernIrelandPowerOutages.Client.Pages;
 using NorthernIrelandPowerOutages.Components;
 using NorthernIrelandPowerOutages.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddUserSecrets();
+
+builder.AddDependencies();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

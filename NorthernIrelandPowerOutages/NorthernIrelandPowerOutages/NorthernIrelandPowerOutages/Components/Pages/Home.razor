@@ -1,12 +1,18 @@
 ﻿@page "/"
+@using Infrastructure.Email
 @using Infrastructure.Helpers
+@using Infrastructure.ProjectSettings
 @using NorthernIrelandPowerOutages.Counties
 @using NorthernIrelandPowerOutages.Models
 @using System.Text.Json
+@using Infrastructure.Sms
 @inject HttpClient Http
 @inject IHttpClientFactory ClientFactory
 @inject IJSRuntime JS
+@inject ISmsSender SmsSender
+@inject IEmailSender EmailSender
 @implements IAsyncDisposable
+@inject Microsoft.Extensions.Options.IOptionsSnapshot<PersonalSettings> PersonalSettings
 
 <PageTitle>Home</PageTitle>
 
@@ -20,19 +26,12 @@
 </div>
 
 <div style="height: 100vh; width: 100%;">
-    @*     <GoogleMap ApiKey="AIzaSyDFMnsCfQEvTnzYiqVZD1rwK3ZnFLtTziI"
-    Center="new GoogleMapCenter(54.12, -6.24)"
-    Height="100"
-    Width="100"
-    HeightUnit="@Percentage"
-    WidthUnit="@Percentage" 
-    Markers="@markers"
-    Zoom="@zoomLevel"
-    @ref="googleMapRef" /> *@
 
     <button @onclick="ToggleGeoJson" disabled="@isCalculatingCountyOutages">Toggle GeoJson</button>
     <button @onclick="ZoomIn">Zoom In</button>
     <button @onclick="ZoomOut">Zoom Out</button>
+    <button @onclick="SendMessage">Send Message</button>
+    <button @onclick="SendEmail">Send Email</button>
 
     <div id="map" style="height: 100vh; width: 100%;"></div>
 
@@ -182,6 +181,16 @@
     private async Task ZoomIn() => await module.InvokeVoidAsync("zoomMap", 1);
     private async Task ZoomOut() => await module.InvokeVoidAsync("zoomMap", -1);
     private async Task ToggleGeoJson() => await module.InvokeVoidAsync("toggleGeoJson", countyOutages);
+    
+    public void SendMessage()
+    {
+        SmsSender.SendMessage(PersonalSettings.Value.PhoneNumber, "Test message");
+    }
+
+    public async void SendEmail()
+    {
+        await EmailSender.SendEmailAsync(PersonalSettings.Value.Email, "There is a power cut", "There is a disruption to the network");
+    }
 
     public ValueTask DisposeAsync()
     {

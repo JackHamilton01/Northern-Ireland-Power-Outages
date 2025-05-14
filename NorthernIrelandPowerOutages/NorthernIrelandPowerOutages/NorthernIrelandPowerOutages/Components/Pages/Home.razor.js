@@ -97,13 +97,8 @@ function updateCountyOutages(outageData) {
         console.log(countyName);
         let count;
         if (countyName === "londonderry") {
-            console.log("------");
-            console.log(normalizedData);
-            console.log("------");
-
             count = normalizedData["derry/londonderry"];
         } else {
-            console.log("not londerry");
             count = normalizedData[countyName];
         }
 
