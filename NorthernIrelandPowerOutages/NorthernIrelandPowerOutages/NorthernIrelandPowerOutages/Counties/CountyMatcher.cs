@@ -1,12 +1,7 @@
 ﻿using NetTopologySuite.Features;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
-using NorthernIrelandPowerOutages.Client.Models;
-using NorthernIrelandPowerOutages.Models;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 
 namespace NorthernIrelandPowerOutages.Counties
 {
@@ -15,7 +10,7 @@ namespace NorthernIrelandPowerOutages.Counties
         private static string geoJsonPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Map", "NorthernIrelandCounties.geojson");
         private FeatureCollection counties;
 
-        public Dictionary<string, int> CountyOutages { get;  } =
+        public Dictionary<string, int> CountyOutages { get; } =
             NorthernIrelandCounties.Counties.ToDictionary(county => county,
             _ => 0,
             StringComparer.OrdinalIgnoreCase);

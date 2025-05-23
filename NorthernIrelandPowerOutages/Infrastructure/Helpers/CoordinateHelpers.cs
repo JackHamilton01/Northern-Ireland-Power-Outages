@@ -17,8 +17,8 @@ namespace Infrastructure.Helpers
             double[] xy = { easting, northing };
             double[] z = { 0 }; // Elevation
 
-            ProjectionInfo source = ProjectionInfo.FromEpsgCode(IrishGridEpsg); 
-            ProjectionInfo dest = ProjectionInfo.FromEpsgCode(Wgs84Epsg);   
+            ProjectionInfo source = ProjectionInfo.FromEpsgCode(IrishGridEpsg);
+            ProjectionInfo dest = ProjectionInfo.FromEpsgCode(Wgs84Epsg);
 
             Reproject.ReprojectPoints(xy, z, source, dest, 0, 1);
 

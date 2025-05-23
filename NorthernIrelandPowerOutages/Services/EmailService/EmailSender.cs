@@ -1,15 +1,13 @@
-﻿using Infrastructure.Email;
-using Infrastructure.ProjectSettings;
-using Microsoft.Extensions.Options;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Net.Mail;
-using System.Runtime.CompilerServices;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Infrastructure.ProjectSettings;
+using Infrastructure.Email;
+using Microsoft.Extensions.Options;
 
 namespace EmailService
 {

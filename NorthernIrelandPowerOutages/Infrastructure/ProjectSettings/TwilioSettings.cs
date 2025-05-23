@@ -12,5 +12,4 @@ namespace Infrastructure.ProjectSettings
         public required string TwilioAccountSid { get; set; }
         public required string TwilioAuthToken { get; set; }
     }
-
 }

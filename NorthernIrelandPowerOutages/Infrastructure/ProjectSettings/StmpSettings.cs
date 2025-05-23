@@ -13,5 +13,4 @@ namespace Infrastructure.ProjectSettings
         public required string SourceEmail { get; set; }
         public required string SourceEmailPassword { get; set; }
     }
-
 }

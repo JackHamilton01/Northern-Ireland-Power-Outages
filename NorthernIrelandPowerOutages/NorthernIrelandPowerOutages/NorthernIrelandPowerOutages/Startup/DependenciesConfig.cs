@@ -1,16 +1,23 @@
 ﻿using EmailService;
 using Infrastructure.Email;
 using Infrastructure.Sms;
-using SMSMessaging;
+using SmsService;
 
 namespace NorthernIrelandPowerOutages.Startup
 {
     public static class DependenciesConfig
     {
-        public static void AddDependencies(this WebApplicationBuilder webApplicationBuilder) 
+        public static void AddDependencies(this WebApplicationBuilder builder)
         {
-            webApplicationBuilder.Services.AddScoped<ISmsSender, SmsSender>();
-            webApplicationBuilder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddScoped<ISmsSender, SmsSender>();
+            builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+            builder.Services.AddHttpClient();
+
+            builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents()
+                .AddInteractiveWebAssemblyComponents()
+                .AddAuthenticationStateSerialization();
         }
     }
 }

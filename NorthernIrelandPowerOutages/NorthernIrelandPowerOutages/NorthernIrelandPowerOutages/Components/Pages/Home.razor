@@ -13,6 +13,7 @@
 @inject IEmailSender EmailSender
 @implements IAsyncDisposable
 @inject Microsoft.Extensions.Options.IOptionsSnapshot<PersonalSettings> PersonalSettings
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
@@ -78,9 +79,6 @@
     _ => 0,
     StringComparer.OrdinalIgnoreCase);
 
-    [Parameter]
-    public Unit Percentage { get; set; } = Unit.Percentage;
-
     List<GoogleMapPin> markers = new();
 
     protected async override Task OnInitializedAsync()
@@ -88,7 +86,7 @@
         countyMatcher = await CountyMatcher.Create();
         dotNetObjectReference = DotNetObjectReference.Create(this);
 
-        var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7146/faults");
+        var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7125/faults");
 
         if (response is null)
         {
@@ -102,12 +100,12 @@
                 (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
 
                 markers.Add(new GoogleMapPin()
-                {
-                    Name = outageMessage.PostCode,
-                    StatusMessage = outageMessage.StatusMessage,
-                    Latitude = latitude,
-                    Longitude = longitude,
-                });
+                    {
+                        Name = outageMessage.PostCode,
+                        StatusMessage = outageMessage.StatusMessage,
+                        Latitude = latitude,
+                        Longitude = longitude,
+                    });
             }
 
         }
@@ -181,7 +179,7 @@
     private async Task ZoomIn() => await module.InvokeVoidAsync("zoomMap", 1);
     private async Task ZoomOut() => await module.InvokeVoidAsync("zoomMap", -1);
     private async Task ToggleGeoJson() => await module.InvokeVoidAsync("toggleGeoJson", countyOutages);
-    
+
     public void SendMessage()
     {
         SmsSender.SendMessage(PersonalSettings.Value.PhoneNumber, "Test message");

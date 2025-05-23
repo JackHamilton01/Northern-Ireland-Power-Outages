@@ -1,0 +1,6 @@
+@FaultsAPI_HostAddress = http://localhost:5233
+
+GET {{FaultsAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

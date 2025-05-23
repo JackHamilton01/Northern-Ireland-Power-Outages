@@ -1,7 +1,4 @@
-﻿using NorthernIrelandPowerOutages.Models;
-using System.Text.Json.Serialization;
-
-namespace NorthernIrelandPowerOutages.Models
+﻿namespace NorthernIrelandPowerOutages.Models
 {
     public class FaultModel
     {
