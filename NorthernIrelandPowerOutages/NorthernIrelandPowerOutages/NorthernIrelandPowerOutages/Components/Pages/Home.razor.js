@@ -15,6 +15,7 @@ export function initMap(markers, dotNetHelper) {
             latLngBounds: bounds,
             strictBounds: true
         },
+        gestureHandling: "greedy",
         zoom: 8,
         center: { lat: 54.6079, lng: -5.9264 }
     });

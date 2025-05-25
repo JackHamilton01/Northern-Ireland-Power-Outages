@@ -1,4 +1,5 @@
 ﻿using FaultsAPI.Data;
+using FaultsAPI.Models;
 
 namespace FaultsAPI.Endpoints
 {
@@ -12,7 +13,7 @@ namespace FaultsAPI.Endpoints
 
         private static async Task<IResult> LoadAllFaultsAsync(FaultData data, string? outageType, string? search, int? delay)
         {
-            var output = data.Faults;
+            FaultModel? faults = await data.LoadFaultsAsync();
 
             if (outageType != null)
             {
@@ -21,14 +22,14 @@ namespace FaultsAPI.Endpoints
                     return Results.BadRequest($"Invalid power cut type: {outageType}");
                 }
 
-                data.Faults.OutageMessage = data.Faults.OutageMessage
+                faults.OutageMessage = faults.OutageMessage
                     .Where(x => x.OutageType == outageType)
                     .ToArray();
             }
 
             if (string.IsNullOrWhiteSpace(search) == false)
             {
-                data.Faults.OutageMessage = data.Faults.OutageMessage
+                faults.OutageMessage = faults.OutageMessage
                     .Where(x => x.PostCode != null && x.PostCode.Contains(search, StringComparison.OrdinalIgnoreCase))
                     .ToArray();
             }
@@ -44,11 +45,32 @@ namespace FaultsAPI.Endpoints
                 await Task.Delay((int)delay);
             }
 
-            return Results.Ok(output);
+            return Results.Ok(faults);
         }
 
-        private static async Task<IResult> LoadFaultByIncidentReferenceAsync(FaultData data, string outageId, int? delay)
+        private static async Task<IResult> LoadAllFaultsAsyncFromJson(FaultData data, string? outageType, string? search, int? delay)
         {
+            var faults = await data.LoadFaultsAsync();
+
+            if (outageType != null)
+            {
+                if (!Enum.TryParse<OutageType>(outageType, true, out var parsedPowerCutType))
+                {
+                    return Results.BadRequest($"Invalid power cut type: {outageType}");
+                }
+
+                faults.OutageMessage = faults.OutageMessage
+                    .Where(x => x.OutageType == outageType)
+                    .ToArray();
+            }
+
+            if (string.IsNullOrWhiteSpace(search) == false)
+            {
+                faults.OutageMessage = faults.OutageMessage
+                    .Where(x => x.PostCode != null && x.PostCode.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .ToArray();
+            }
+
             if (delay is not null)
             {
                 // Max delay of 5 minutes (300,000 milliseconds)
@@ -60,7 +82,25 @@ namespace FaultsAPI.Endpoints
                 await Task.Delay((int)delay);
             }
 
-            var match = data.Faults.OutageMessage.SingleOrDefault(x => x.OutageId == outageId);
+            return Results.Ok(faults);
+        }
+
+        private static async Task<IResult> LoadFaultByIncidentReferenceAsync(FaultData data, string outageId, int? delay)
+        {
+            var faults = await data.LoadFaultsAsync();
+
+            if (delay is not null)
+            {
+                // Max delay of 5 minutes (300,000 milliseconds)
+                if (delay > 300000)
+                {
+                    delay = 300000;
+                }
+
+                await Task.Delay((int)delay);
+            }
+
+            var match = faults.OutageMessage.SingleOrDefault(x => x.OutageId == outageId);
             if (match != null)
             {
                 return Results.Ok(match);

@@ -10,7 +10,11 @@ namespace FaultsAPI.Startup
             builder.Services.AddCorsServices();
             builder.Services.AddAllHealthChecks();
 
-            builder.Services.AddTransient<FaultData>();
+            builder.Services.AddTransient<HttpClient>();
+            builder.Services.AddTransient<FaultData>(serviceProvider =>
+            {
+                return new(serviceProvider.GetRequiredService<HttpClient>()); 
+            });
         }
     }
 }
