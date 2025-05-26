@@ -6,6 +6,7 @@
 @using NorthernIrelandPowerOutages.Models
 @using System.Text.Json
 @using Infrastructure.Sms
+@using NorthernIrelandPowerOutages.Services
 @inject HttpClient Http
 @inject IHttpClientFactory ClientFactory
 @inject IJSRuntime JS
@@ -73,6 +74,7 @@
 
     private GoogleMapPin? googleMapPin;
     private CountyMatcher countyMatcher;
+    private FaultPollingService faultPollingService;
 
     private Dictionary<string, int> countyOutages =
     NorthernIrelandCounties.Counties.ToDictionary(county => county,
@@ -85,32 +87,47 @@
     {
         countyMatcher = await CountyMatcher.Create();
         dotNetObjectReference = DotNetObjectReference.Create(this);
+        faultPollingService = new(Http);
+
+        _ = faultPollingService.StartAsync();
+        faultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
 
         var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7125/faults");
 
-        if (response is null)
+        DisplayFaults(response);
+
+        mapInitialised = true;
+    }
+
+    private void DisplayFaults(FaultModel? faults)
+    {
+        if (faults is null)
         {
             return;
         }
 
-        foreach (var outageMessage in response.OutageMessage)
+        foreach (var outageMessage in faults.OutageMessage)
         {
             if (!string.IsNullOrWhiteSpace(outageMessage.Point.Coordinates))
             {
                 (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
 
                 markers.Add(new GoogleMapPin()
-                    {
-                        Name = outageMessage.PostCode,
-                        StatusMessage = outageMessage.StatusMessage,
-                        Latitude = latitude,
-                        Longitude = longitude,
-                    });
+                {
+                    Name = outageMessage.PostCode,
+                    StatusMessage = outageMessage.StatusMessage,
+                    Latitude = latitude,
+                    Longitude = longitude,
+                });
             }
-
         }
+    }
 
-        mapInitialised = true;
+    private async void FaultPollingService_OnFaultsUpdated(FaultModel? faultData)
+    {
+        DisplayFaults(faultData);
+
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

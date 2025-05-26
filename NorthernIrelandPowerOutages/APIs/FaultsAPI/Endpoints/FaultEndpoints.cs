@@ -1,5 +1,5 @@
 ﻿using FaultsAPI.Data;
-using FaultsAPI.Models;
+using NorthernIrelandPowerOutages.Models;
 
 namespace FaultsAPI.Endpoints
 {

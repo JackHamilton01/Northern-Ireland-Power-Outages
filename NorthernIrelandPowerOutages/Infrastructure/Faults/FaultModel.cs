@@ -1,4 +1,6 @@
-﻿namespace NorthernIrelandPowerOutages.Models
+﻿using FaultsAPI.Models;
+
+namespace NorthernIrelandPowerOutages.Models
 {
     public class FaultModel
     {
