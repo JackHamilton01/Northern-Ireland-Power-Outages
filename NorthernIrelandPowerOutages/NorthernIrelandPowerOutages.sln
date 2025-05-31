@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmsService", "Services\SmsS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaultsAPI", "APIs\FaultsAPI\FaultsAPI.csproj", "{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocationService", "Services\LocationService\LocationService.csproj", "{2209317D-985D-46BF-B063-6FEE0C661D1A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2209317D-985D-46BF-B063-6FEE0C661D1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2209317D-985D-46BF-B063-6FEE0C661D1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2209317D-985D-46BF-B063-6FEE0C661D1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2209317D-985D-46BF-B063-6FEE0C661D1A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -57,6 +63,7 @@ Global
 		{BB868CD2-F6CB-4C40-B2EB-FC6B678AD5F1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{DECDEE8C-8546-4157-A37B-E3C920F7A474} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417} = {DFC7A837-5376-45F3-B34B-1D126EA26F11}
+		{2209317D-985D-46BF-B063-6FEE0C661D1A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FDDC4DA4-09FA-4507-AC31-00362C08BB7D}

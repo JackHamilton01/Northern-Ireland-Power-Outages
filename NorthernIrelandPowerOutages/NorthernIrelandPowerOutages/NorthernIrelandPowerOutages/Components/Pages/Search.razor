@@ -1,0 +1,89 @@
+﻿@page "/Search"
+@using NorthernIrelandPowerOutages.Models
+@using NorthernIrelandPowerOutages.Services
+@inject IFaultPollingService FaultPollingService
+@inject HttpClient httpClient
+@rendermode InteractiveServer
+
+<h3>Search</h3>
+
+@if (fault != null && fault.OutageMessage != null && fault.OutageMessage.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var outages in fault.OutageMessage)
+            {
+                <tr>
+                    <td>Id</td>
+                    <td>@outages.OutageId</td>
+                </tr>
+                <tr>
+                    <td>Outage Type</td>
+                    <td>@outages.OutageType</td>
+                </tr>
+                <tr>
+                    <td>Post Code</td>
+                    <td>@outages.PostCode</td>
+                </tr>
+                <tr>
+                    <td>Status Message</td>
+                    <td>@outages.StatusMessage</td>
+                </tr>
+                <tr>
+                    <td colspan="2"><hr /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No fault data available yet.</p>
+}
+
+<input @bind="postCode" placeholder="Enter postcode" />
+<button @onclick="SearchByPostCode">Search</button>
+
+<p>@faultInfo</p>
+
+@code
+{
+    private FaultModel? fault;
+    private string? postCode;
+    private string? faultInfo;
+
+    protected override void OnInitialized()
+    {
+        FaultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
+        fault = FaultPollingService.CurrentFault; 
+    }
+
+    private async void FaultPollingService_OnFaultsUpdated(FaultModel? fault, bool isFirstPoll)
+    {
+        this.fault = fault;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task SearchByPostCode()
+    {
+        FaultModel response = await httpClient.GetFromJsonAsync<FaultModel>($"https://localhost:7125/faults?postCode={postCode}");
+
+        if (response is null)
+        {
+            return;
+        }
+
+        var id = (response.OutageMessage.First()).OutageId;
+        var postCodeReceived = (response.OutageMessage.First()).PostCode;
+        var estRestoreTime = (response.OutageMessage.First()).EstRestoreTime;
+
+        faultInfo = $"Fault ID: {id}, Post Code: {postCodeReceived}, Estimated Restore Time: {estRestoreTime}";
+    }
+}

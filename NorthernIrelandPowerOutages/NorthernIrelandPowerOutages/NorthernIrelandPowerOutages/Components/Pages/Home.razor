@@ -2,7 +2,9 @@
 @using Infrastructure.Email
 @using Infrastructure.Helpers
 @using Infrastructure.ProjectSettings
+@using LocationService
 @using NorthernIrelandPowerOutages.Counties
+@using NorthernIrelandPowerOutages.Enums
 @using NorthernIrelandPowerOutages.Models
 @using System.Text.Json
 @using Infrastructure.Sms
@@ -15,6 +17,10 @@
 @implements IAsyncDisposable
 @inject Microsoft.Extensions.Options.IOptionsSnapshot<PersonalSettings> PersonalSettings
 @rendermode InteractiveServer
+@inject ILocationService LocationService
+@inject IFaultPollingService FaultPollingService
+@inject NavigationManager NavigationManager
+@implements IDisposable
 
 <PageTitle>Home</PageTitle>
 
@@ -34,6 +40,8 @@
     <button @onclick="ZoomOut">Zoom Out</button>
     <button @onclick="SendMessage">Send Message</button>
     <button @onclick="SendEmail">Send Email</button>
+
+    <a href="/search">Search</a>
 
     <div id="map" style="height: 100vh; width: 100%;"></div>
 
@@ -74,7 +82,10 @@
 
     private GoogleMapPin? googleMapPin;
     private CountyMatcher countyMatcher;
-    private FaultPollingService faultPollingService;
+    private GoogleMapPin? homePin;
+
+    private bool IsHomePage =>
+       string.IsNullOrEmpty(NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
 
     private Dictionary<string, int> countyOutages =
     NorthernIrelandCounties.Counties.ToDictionary(county => county,
@@ -87,14 +98,6 @@
     {
         countyMatcher = await CountyMatcher.Create();
         dotNetObjectReference = DotNetObjectReference.Create(this);
-        faultPollingService = new(Http);
-
-        _ = faultPollingService.StartAsync();
-        faultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
-
-        var response = await Http.GetFromJsonAsync<FaultModel>("https://localhost:7125/faults");
-
-        DisplayFaults(response);
 
         mapInitialised = true;
     }
@@ -121,11 +124,27 @@
                 });
             }
         }
+
+        if (homePin is not null)
+        {
+            markers.Add(homePin);
+        }
     }
 
-    private async void FaultPollingService_OnFaultsUpdated(FaultModel? faultData)
+    private async void FaultPollingService_OnFaultsUpdated(FaultModel? faultData, bool isFirstPoll)
     {
         DisplayFaults(faultData);
+
+        if (IsHomePage)
+        {
+            await module.InvokeVoidAsync("updateMarkers", markers, dotNetObjectReference);
+            await CalculateCountyOutages();
+        }
+
+        if (isFirstPoll && homePin is not null)
+        {
+            await module.InvokeVoidAsync("MoveToLocation", homePin.Latitude, homePin.Longitude);
+        }
 
         await InvokeAsync(StateHasChanged);
     }
@@ -135,6 +154,9 @@
         if (firstRender)
         {
             module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
+
+            FaultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
+            await FaultPollingService.StartAsync();
             return;
         }
 
@@ -145,39 +167,63 @@
                 return;
             }
 
+            var location = await LocationService.GetCurrentDeviceLocationAsync();
+
+            if (location is not null)
+            {
+                homePin = new GoogleMapPin()
+                {
+                    Latitude = location.Latitude,
+                    Longitude = location.Longitude,
+                    Icon = GoogleMapPinIconConstants.Home
+                };
+
+                markers.Add(homePin);
+            }
+
             await module.InvokeVoidAsync("initMap", markers, dotNetObjectReference);
             mapMarkersPlaced = true;
+
+            if (location is not null)
+            {
+                await module.InvokeVoidAsync("MoveToLocation", location.Latitude, location.Longitude);
+            }
         }
 
         if (!isCalculatingCountyOutagesStarted)
         {
-            isCalculatingCountyOutagesStarted = true;
-            foreach (var marker in markers)
-            {
-                await Task.Run(async () =>
-                {
-                    string countyName = countyMatcher.MatchCounties(marker.Longitude, marker.Latitude);
-
-                    await InvokeAsync(() =>
-                    {
-                        if (!countyOutages.ContainsKey(countyName))
-                        {
-                            return;
-                        }
-
-                        if (!countyOutages.TryGetValue(countyName, out int count))
-                        {
-                            count = 0;
-                        }
-
-                        countyOutages[countyName] = count + 1;
-                    });
-                });
-            }
-
-            isCalculatingCountyOutages = false;
-            StateHasChanged();
+            await CalculateCountyOutages();
         }
+    }
+
+    private async Task CalculateCountyOutages()
+    {
+        isCalculatingCountyOutagesStarted = true;
+        foreach (var marker in markers)
+        {
+            await Task.Run(async () =>
+            {
+                string countyName = countyMatcher.MatchCounties(marker.Longitude, marker.Latitude);
+
+                await InvokeAsync(() =>
+                {
+                    if (!countyOutages.ContainsKey(countyName))
+                    {
+                        return;
+                    }
+
+                    if (!countyOutages.TryGetValue(countyName, out int count))
+                    {
+                        count = 0;
+                    }
+
+                    countyOutages[countyName] = count + 1;
+                });
+            });
+        }
+
+        isCalculatingCountyOutages = false;
+        StateHasChanged();
     }
 
     [JSInvokable]
@@ -210,5 +256,10 @@
     public ValueTask DisposeAsync()
     {
         return ValueTask.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        FaultPollingService.OnFaultsReceived -= FaultPollingService_OnFaultsUpdated;
     }
 }

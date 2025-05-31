@@ -10,6 +10,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
     <ProjectReference Include="..\..\Services\EmailService\EmailService.csproj" />
+    <ProjectReference Include="..\..\Services\LocationService\LocationService.csproj" />
     <ProjectReference Include="..\..\Services\SmsService\SmsService.csproj" />
     <ProjectReference Include="..\NorthernIrelandPowerOutages.Client\NorthernIrelandPowerOutages.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.4" />

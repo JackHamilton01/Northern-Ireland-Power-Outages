@@ -1,5 +1,6 @@
 ﻿using FaultsAPI.Data;
 using NorthernIrelandPowerOutages.Models;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FaultsAPI.Endpoints
 {
@@ -11,7 +12,7 @@ namespace FaultsAPI.Endpoints
             app.MapGet("/faults/{incidentReference}", LoadFaultByIncidentReferenceAsync);
         }
 
-        private static async Task<IResult> LoadAllFaultsAsync(FaultData data, string? outageType, string? search, int? delay)
+        private static async Task<IResult> LoadAllFaultsAsync(FaultData data, string? outageType, string? postCode, int? delay)
         {
             FaultModel? faults = await data.LoadFaultsAsync();
 
@@ -27,10 +28,10 @@ namespace FaultsAPI.Endpoints
                     .ToArray();
             }
 
-            if (string.IsNullOrWhiteSpace(search) == false)
+            if (string.IsNullOrWhiteSpace(postCode) == false)
             {
                 faults.OutageMessage = faults.OutageMessage
-                    .Where(x => x.PostCode != null && x.PostCode.Contains(search, StringComparison.OrdinalIgnoreCase))
+                    .Where(x => x.PostCode != null && x.PostCode.Contains(postCode, StringComparison.OrdinalIgnoreCase))
                     .ToArray();
             }
 
@@ -108,5 +109,6 @@ namespace FaultsAPI.Endpoints
 
             return Results.NotFound();
         }
+
     }
 }

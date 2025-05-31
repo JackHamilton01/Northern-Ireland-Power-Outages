@@ -4,11 +4,14 @@ using System.Timers;
 
 namespace NorthernIrelandPowerOutages.Services
 {
-    public class FaultPollingService
+    public class FaultPollingService : IFaultPollingService
     {
         private readonly HttpClient httpClient;
+        private bool isFirstPoll = true;
 
-        public event Action<FaultModel?> OnFaultsReceived;
+        public FaultModel? CurrentFault { get; set; }
+
+        public event Action<FaultModel?, bool> OnFaultsReceived;
 
         public FaultPollingService(HttpClient httpClient)
         {
@@ -20,6 +23,7 @@ namespace NorthernIrelandPowerOutages.Services
             while (!cancellationToken.IsCancellationRequested)
             {
                 await GetCurrentFaults();
+                isFirstPoll = false;
 
                 var now = DateTime.Now;
                 var next5Min = now.AddMinutes(5 - now.Minute % 5).AddSeconds(-now.Second).AddMilliseconds(-now.Millisecond);
@@ -33,16 +37,10 @@ namespace NorthernIrelandPowerOutages.Services
 
         private async Task GetCurrentFaults()
         {
-            try
-            {
-                var response = await httpClient.GetFromJsonAsync<FaultModel>("https://localhost:7125/faults");
-                OnFaultsReceived?.Invoke(response);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Polling error: {ex.Message}");
-            }
+            var response = await httpClient.GetFromJsonAsync<FaultModel>("https://localhost:7125/faults");
+
+            CurrentFault = response;
+            OnFaultsReceived?.Invoke(response, isFirstPoll);
         }
     }
-
 }

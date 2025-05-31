@@ -5,6 +5,7 @@ using NorthernIrelandPowerOutages.Client.Pages;
 using NorthernIrelandPowerOutages.Components;
 using NorthernIrelandPowerOutages.Components.Account;
 using NorthernIrelandPowerOutages.Data;
+using NorthernIrelandPowerOutages.Services;
 using NorthernIrelandPowerOutages.Startup;
 
 namespace NorthernIrelandPowerOutages
@@ -44,6 +45,8 @@ namespace NorthernIrelandPowerOutages
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
             var app = builder.Build();
+
+            var faultPollingService = app.Services.GetRequiredService<IFaultPollingService>();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())

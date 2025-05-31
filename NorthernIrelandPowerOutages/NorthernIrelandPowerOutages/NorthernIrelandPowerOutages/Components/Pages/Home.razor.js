@@ -25,12 +25,15 @@ export function initMap(markers, dotNetHelper) {
     //const infoWindow = new google.maps.InfoWindow();
 
     markers.forEach(marker => {
+
+        var iconUrl = getMarkerIconUrl(marker.icon);
+
         const markerOptions = {
             position: { lat: marker.latitude, lng: marker.longitude },
             map: googleMap,
             title: marker.Name,
             icon: {
-                url: "/Images/Map/Default.png",
+                url: iconUrl,
                 size: new google.maps.Size(30, 30),
                 scaledSize: new google.maps.Size(30, 30)
             }
@@ -58,6 +61,23 @@ export function initMap(markers, dotNetHelper) {
         googleMap.setZoom(currentZoom + zoomChange);
     };
 };
+
+function getMarkerIconUrl(iconName) {
+    let iconUrl;
+
+    if (iconName === "Default") {
+        iconUrl = "/Images/Map/Default.png";
+    }
+    else if (iconName === "Home") {
+        iconUrl = "/Images/Map/Home.png";
+    }
+    else {
+        iconUrl = "/Images/Map/Default.png"; 
+    }
+
+    return iconUrl;
+}
+
 
 export function toggleGeoJson(countyOutageInformation) {
     console.log(countyOutageInformation);
@@ -140,6 +160,46 @@ function toggleMapMarkersVisibility(map) {
     for (let i = 0; i < markersOnMap.length; i++) {
         markersOnMap[i].setMap(map);
     }
+}
+
+export function updateMarkers(markers, dotNetHelper) {
+    if (!googleMap) {
+        return;
+    }
+
+    // Remove existing markers
+    markersOnMap.forEach(marker => marker.setMap(null));
+    markersOnMap = [];
+
+    // Add new markers
+    markers.forEach(marker => {
+        var iconUrl = getMarkerIconUrl(marker.icon);
+
+        const markerOptions = {
+            position: { lat: marker.latitude, lng: marker.longitude },
+            map: googleMap,
+            title: marker.Name,
+            icon: {
+                url: iconUrl,
+                size: new google.maps.Size(30, 30),
+                scaledSize: new google.maps.Size(30, 30)
+            }
+        };
+
+        const mapMarker = new google.maps.Marker(markerOptions);
+        markersOnMap.push(mapMarker);
+
+        mapMarker.addListener("click", function () {
+            googleMap.panTo(mapMarker.getPosition());
+            dotNetHelper.invokeMethodAsync('OnMarkerClicked', marker);
+        });
+    });
+}
+
+export function MoveToLocation(latitude, longitude) {
+    const location = new google.maps.LatLng(latitude, longitude);
+    googleMap.panTo(location);
+    googleMap.setZoom(17);
 }
 
 export function logToConsole(message) {

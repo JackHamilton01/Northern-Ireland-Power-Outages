@@ -2,6 +2,8 @@
 using Infrastructure.Email;
 using Infrastructure.ProjectSettings;
 using Infrastructure.Sms;
+using LocationService;
+using NorthernIrelandPowerOutages.Services;
 using SmsService;
 
 namespace NorthernIrelandPowerOutages.Startup
@@ -12,6 +14,9 @@ namespace NorthernIrelandPowerOutages.Startup
         {
             builder.Services.AddScoped<ISmsSender, SmsSender>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
+            builder.Services.AddScoped<ILocationService, LocationService.LocationService>();
+
+            builder.Services.AddSingleton<IFaultPollingService, FaultPollingService>();
 
             builder.Services.AddHttpClient();
 
