@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json;
+using Domain.Backend;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
 using NorthernIrelandPowerOutages.Components.Account.Pages;
 using NorthernIrelandPowerOutages.Components.Account.Pages.Manage;
-using NorthernIrelandPowerOutages.Data;
 
 namespace Microsoft.AspNetCore.Routing
 {

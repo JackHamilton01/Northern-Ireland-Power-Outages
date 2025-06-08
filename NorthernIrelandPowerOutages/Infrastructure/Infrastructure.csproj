@@ -15,6 +15,10 @@
     <PackageReference Include="DotSpatial.Projections" Version="4.0.656" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+  </ItemGroup>
+
 
 
 </Project>

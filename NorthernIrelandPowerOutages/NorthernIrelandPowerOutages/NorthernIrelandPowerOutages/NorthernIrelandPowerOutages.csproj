@@ -9,13 +9,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Services\AddressService\AddressService.csproj" />
     <ProjectReference Include="..\..\Services\EmailService\EmailService.csproj" />
+    <ProjectReference Include="..\..\Services\GeocodeService\GeocodeService.csproj" />
     <ProjectReference Include="..\..\Services\LocationService\LocationService.csproj" />
     <ProjectReference Include="..\..\Services\SmsService\SmsService.csproj" />
     <ProjectReference Include="..\NorthernIrelandPowerOutages.Client\NorthernIrelandPowerOutages.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.4" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.4" />
     <PackageReference Include="NetTopologySuite.IO.GeoJSON" Version="4.0.0" />

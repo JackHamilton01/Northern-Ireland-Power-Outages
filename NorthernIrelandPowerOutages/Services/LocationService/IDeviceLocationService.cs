@@ -1,7 +1,7 @@
 ﻿
 namespace LocationService
 {
-    public interface ILocationService
+    public interface IDeviceLocationService
     {
         Task<Location?> GetCurrentDeviceLocationAsync();
     }

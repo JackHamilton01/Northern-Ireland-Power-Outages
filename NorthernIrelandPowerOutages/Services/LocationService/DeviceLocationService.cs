@@ -2,11 +2,11 @@
 
 namespace LocationService
 {
-    public class LocationService : ILocationService
+    public class DeviceLocationService : IDeviceLocationService
     {
         private readonly IJSRuntime jsRuntime;
 
-        public LocationService(IJSRuntime jsRuntime)
+        public DeviceLocationService(IJSRuntime jsRuntime)
         {
             this.jsRuntime = jsRuntime ?? throw new ArgumentNullException(nameof(jsRuntime));
         }

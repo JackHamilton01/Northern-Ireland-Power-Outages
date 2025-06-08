@@ -1,6 +1,6 @@
+using Domain.Backend;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
-using NorthernIrelandPowerOutages.Data;
 
 namespace NorthernIrelandPowerOutages.Components.Account
 {

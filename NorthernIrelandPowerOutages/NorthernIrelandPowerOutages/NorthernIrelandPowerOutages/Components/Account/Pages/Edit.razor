@@ -1,0 +1,198 @@
+﻿@page "/account/edit"
+@using Domain.Backend
+@using Domain.Frontend
+@using Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@using NorthernIrelandPowerOutages.Models
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ApplicationDbContext DbContext
+@inject AddressService.IAddressService AddressService
+@inject GeocodeService.IGeocodeService GeocodeService
+@rendermode InteractiveServer
+
+<EditForm Model="@address" OnValidSubmit="SaveAddress" FormName="addressForm">
+
+    <div>
+        <label>Street Number:</label>
+        <InputNumber Id="StreetNumber" @bind-Value="@address.StreetNumber" />
+    </div>
+    <div>
+        <label>Street Name:</label>
+        <InputText @bind-Value="@address.StreetName" />
+    </div>
+    <div>
+        <label>Building Details:</label>
+        <InputText @bind-Value="@address.BuildingDetails" />
+    </div>
+    <div>
+        <label>City:</label>
+        <InputText @bind-Value="@address.City" />
+    </div>
+    <div>
+        <label>County:</label>
+        <InputText @bind-Value="@address.County" />
+    </div>
+    <div>
+        <label>Postcode:</label>
+        <InputText @bind-Value="@address.PostCode" />
+    </div>
+
+    <button type="submit">Save Address</button>
+</EditForm>
+
+<hr />
+
+<h4>Saved Addresses</h4>
+
+@if (addresses.Count == 0)
+{
+    <p>No addresses found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var a in addresses)
+        {
+            <li>
+                @($"{a.StreetNumber} {a.StreetName}, {a.City}, {a.County}, {a.PostCode}")
+                <button @onclick="() => DeleteAddress(a.Id)">Delete</button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+
+    private ApplicationUser authenticatedUser; 
+    private AddressUI address = new();
+    private List<AddressUI> addresses = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var t = await GeocodeService.GetAddressesFromPostcodeAsync("BT42 1NA");
+
+        AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity?.IsAuthenticated == true)
+        {
+            string? userId = claimsPrincipal.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userId is not null)
+            {
+                authenticatedUser = DbContext.Users.First(u => u.Id == userId);
+
+                var retrievedAddresses = await DbContext.Users
+                    .Where(u => u.Id == userId)
+                    .Include(u => u.FavoriteAddresses)
+                    .SelectMany(u => u.FavoriteAddresses)
+                    .ToListAsync();
+
+                if (retrievedAddresses is not null)
+                {
+                    this.addresses.AddRange(retrievedAddresses.Select(a => (AddressUI)a));
+                }
+            }
+        }
+    }
+
+    private async Task SaveAddress(EditContext editContext)
+    {
+        try
+        {
+            await SaveAddressChangesToDatabase();
+
+            addresses.Add(address);
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private async Task SaveAddressChangesToDatabase()
+    {
+        Address? existingAddress = await AddressService.GetMatchAsync(address);
+
+        ApplicationUser user = await DbContext.Users
+            .Include(u => u.FavoriteAddresses)
+            .FirstAsync(u => u.Id == authenticatedUser.Id);
+
+        if (user.FavoriteAddresses is null)
+        {
+            user.FavoriteAddresses = new List<Address>();
+        }
+
+        // User has already saved this address
+        if (existingAddress is not null && user.FavoriteAddresses.Contains(existingAddress))
+        {
+            throw new Exception("This address has already been added to favourites");
+        }
+
+        Address addressToAdd;
+
+        if (existingAddress is null)
+        {
+            addressToAdd = address;
+        }
+        else
+        {
+            addressToAdd = existingAddress;
+        }
+
+        if (!user.FavoriteAddresses.Any(a => a.Id == addressToAdd.Id))
+        {
+            var geopoint = await GeocodeService.GetLatLongFromAddressAsync(address.ToString());
+
+            if (geopoint is null)
+            {
+                throw new Exception("Invalid address provided");
+            }
+
+            Address backendAddress = addressToAdd;
+            backendAddress.Latitude = geopoint.Latitude;
+            backendAddress.Longitude = geopoint.Longitude;
+
+            user.FavoriteAddresses.Add(backendAddress);
+        }
+
+        await DbContext.SaveChangesAsync();
+    }
+
+    private async Task DeleteAddress(int id)
+    {
+        await DeleteAddressFromDatabase(id);
+        await DeleteUnusedAddressesFromDatabase();
+
+        var addressToDelete = addresses.FirstOrDefault(a => a.Id == id);
+        if (addressToDelete != null)
+        {
+            addresses.Remove(addressToDelete);
+        }
+    }
+
+    private async Task DeleteAddressFromDatabase(int addressId)
+    {
+        ApplicationUser user = await DbContext.Users
+            .Include(u => u.FavoriteAddresses)
+            .FirstAsync(u => u.Id == authenticatedUser.Id);
+
+        var address = user.FavoriteAddresses.FirstOrDefault(f => f.Id == addressId);
+        if (address != null)
+        {
+            user.FavoriteAddresses.Remove(address); 
+            await DbContext.SaveChangesAsync();
+        }
+    }
+
+    private async Task DeleteUnusedAddressesFromDatabase()
+    {
+        var unusedAddresses = await DbContext.Addresses
+            .Where(a => !a.Users.Any()) 
+            .ToListAsync();
+
+        DbContext.Addresses.RemoveRange(unusedAddresses);
+        await DbContext.SaveChangesAsync();
+    }
+}

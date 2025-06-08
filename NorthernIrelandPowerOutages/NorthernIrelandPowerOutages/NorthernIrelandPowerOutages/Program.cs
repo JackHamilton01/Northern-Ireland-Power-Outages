@@ -1,10 +1,11 @@
+using Domain.Backend;
+using Infrastructure.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NorthernIrelandPowerOutages.Client.Pages;
 using NorthernIrelandPowerOutages.Components;
 using NorthernIrelandPowerOutages.Components.Account;
-using NorthernIrelandPowerOutages.Data;
 using NorthernIrelandPowerOutages.Services;
 using NorthernIrelandPowerOutages.Startup;
 
@@ -20,11 +21,6 @@ namespace NorthernIrelandPowerOutages
 
             builder.AddDependencies();
 
-            builder.Services.AddCascadingAuthenticationState();
-            builder.Services.AddScoped<IdentityUserAccessor>();
-            builder.Services.AddScoped<IdentityRedirectManager>();
-            builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
-
             builder.Services.AddAuthentication(options =>
                 {
                     options.DefaultScheme = IdentityConstants.ApplicationScheme;
@@ -32,9 +28,6 @@ namespace NorthernIrelandPowerOutages
                 })
                 .AddIdentityCookies();
 
-            var connectionString = builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("Connection string 'Postgres' not found.");
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(connectionString));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)

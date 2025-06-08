@@ -17,10 +17,9 @@
 @implements IAsyncDisposable
 @inject Microsoft.Extensions.Options.IOptionsSnapshot<PersonalSettings> PersonalSettings
 @rendermode InteractiveServer
-@inject ILocationService LocationService
+@inject IDeviceLocationService LocationService
 @inject IFaultPollingService FaultPollingService
 @inject NavigationManager NavigationManager
-@implements IDisposable
 
 <PageTitle>Home</PageTitle>
 
@@ -40,6 +39,8 @@
     <button @onclick="ZoomOut">Zoom Out</button>
     <button @onclick="SendMessage">Send Message</button>
     <button @onclick="SendEmail">Send Email</button>
+  
+    <a href="/account/edit">Edit User</a>
 
     <a href="/search">Search</a>
 
@@ -255,11 +256,7 @@
 
     public ValueTask DisposeAsync()
     {
-        return ValueTask.CompletedTask;
-    }
-
-    public void Dispose()
-    {
         FaultPollingService.OnFaultsReceived -= FaultPollingService_OnFaultsUpdated;
+        return ValueTask.CompletedTask;
     }
 }
