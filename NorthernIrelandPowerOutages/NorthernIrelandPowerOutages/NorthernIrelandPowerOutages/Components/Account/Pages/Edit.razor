@@ -11,31 +11,31 @@
 @inject GeocodeService.IGeocodeService GeocodeService
 @rendermode InteractiveServer
 
-<EditForm Model="@address" OnValidSubmit="SaveAddress" FormName="addressForm">
+<EditForm Model="@addressInput" OnValidSubmit="SaveAddress" FormName="addressForm">
 
     <div>
         <label>Street Number:</label>
-        <InputNumber Id="StreetNumber" @bind-Value="@address.StreetNumber" />
+        <InputNumber Id="StreetNumber" @bind-Value="@addressInput.StreetNumber" />
     </div>
     <div>
         <label>Street Name:</label>
-        <InputText @bind-Value="@address.StreetName" />
+        <InputText @bind-Value="@addressInput.StreetName" />
     </div>
     <div>
         <label>Building Details:</label>
-        <InputText @bind-Value="@address.BuildingDetails" />
+        <InputText @bind-Value="@addressInput.BuildingDetails" />
     </div>
     <div>
         <label>City:</label>
-        <InputText @bind-Value="@address.City" />
+        <InputText @bind-Value="@addressInput.City" />
     </div>
     <div>
         <label>County:</label>
-        <InputText @bind-Value="@address.County" />
+        <InputText @bind-Value="@addressInput.County" />
     </div>
     <div>
         <label>Postcode:</label>
-        <InputText @bind-Value="@address.PostCode" />
+        <InputText @bind-Value="@addressInput.PostCode" />
     </div>
 
     <button type="submit">Save Address</button>
@@ -65,7 +65,7 @@ else
 @code {
 
     private ApplicationUser authenticatedUser; 
-    private AddressUI address = new();
+    private AddressUI addressInput = new();
     private List<AddressUI> addresses = new();
 
     protected override async Task OnInitializedAsync()
@@ -101,9 +101,11 @@ else
     {
         try
         {
-            await SaveAddressChangesToDatabase();
+            var addressToSave = addressInput.Clone();
 
-            addresses.Add(address);
+            await SaveAddressChangesToDatabase(addressToSave);
+
+            addresses.Add(addressToSave);
         }
         catch (Exception)
         {
@@ -111,9 +113,9 @@ else
         }
     }
 
-    private async Task SaveAddressChangesToDatabase()
+    private async Task SaveAddressChangesToDatabase(AddressUI addressToSave)
     {
-        Address? existingAddress = await AddressService.GetMatchAsync(address);
+        Address? existingAddress = await AddressService.GetMatchAsync(addressToSave);
 
         ApplicationUser user = await DbContext.Users
             .Include(u => u.FavoriteAddresses)
@@ -134,7 +136,7 @@ else
 
         if (existingAddress is null)
         {
-            addressToAdd = address;
+            addressToAdd = addressToSave;
         }
         else
         {
@@ -143,7 +145,7 @@ else
 
         if (!user.FavoriteAddresses.Any(a => a.Id == addressToAdd.Id))
         {
-            var geopoint = await GeocodeService.GetLatLongFromAddressAsync(address.ToString());
+            var geopoint = await GeocodeService.GetLatLongFromAddressAsync(addressToSave.ToString());
 
             if (geopoint is null)
             {

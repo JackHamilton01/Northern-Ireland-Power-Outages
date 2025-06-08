@@ -43,15 +43,7 @@ export function initMap(markers, dotNetHelper) {
         markersOnMap.push(mapMarker);
 
         mapMarker.addListener("click", function () {
-            //        const dynamicContent = `
-            //<h3>${marker.name}</h3>
-            //<p>Details: ${marker.details}</p>
-            //`;
-            //        infoWindow.setContent(dynamicContent);
-            //        infoWindow.open(googleMap, mapMarker);
-
             googleMap.panTo(mapMarker.getPosition());
-
             dotNetHelper.invokeMethodAsync('OnMarkerClicked', marker);
         });
     });
@@ -107,6 +99,7 @@ export function toggleGeoJson(countyOutageInformation) {
 
 function updateCountyOutages(outageData) {
     const normalizedData = normalizeOutageData(outageData);
+    console.log(normalizedData);
 
     const values = Object.values(normalizedData);
     const min = Math.min(...values);

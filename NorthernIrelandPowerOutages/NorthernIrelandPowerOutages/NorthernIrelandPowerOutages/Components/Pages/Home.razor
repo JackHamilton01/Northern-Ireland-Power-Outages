@@ -122,6 +122,7 @@
                     StatusMessage = outageMessage.StatusMessage,
                     Latitude = latitude,
                     Longitude = longitude,
+                    IsFault = true,
                 });
             }
         }
@@ -176,10 +177,11 @@
                 {
                     Latitude = location.Latitude,
                     Longitude = location.Longitude,
-                    Icon = GoogleMapPinIconConstants.Home
+                    Icon = GoogleMapPinIconConstants.Home,
+                    IsFault = false,
                 };
 
-                markers.Add(homePin);
+                //markers.Add(homePin);
             }
 
             await module.InvokeVoidAsync("initMap", markers, dotNetObjectReference);
@@ -200,7 +202,8 @@
     private async Task CalculateCountyOutages()
     {
         isCalculatingCountyOutagesStarted = true;
-        foreach (var marker in markers)
+
+        foreach (var marker in markers.Where(m => m.IsFault))
         {
             await Task.Run(async () =>
             {

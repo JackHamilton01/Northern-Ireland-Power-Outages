@@ -10,5 +10,6 @@ namespace NorthernIrelandPowerOutages.Models
         public double Longitude { get; set; }
         public int Size { get; set; }
         public string Icon { get; set; }
+        public bool IsFault { get; set; }
     }
 }

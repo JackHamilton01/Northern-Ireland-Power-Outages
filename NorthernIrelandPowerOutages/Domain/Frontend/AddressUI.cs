@@ -12,6 +12,20 @@ namespace Domain.Frontend
         public string County { get; set; }
         public string PostCode { get; set; }
 
+        public AddressUI Clone()
+        {
+            return new AddressUI
+            {
+                Id = this.Id,
+                StreetNumber = this.StreetNumber,
+                StreetName = this.StreetName,
+                BuildingDetails = this.BuildingDetails,
+                City = this.City,
+                County = this.County,
+                PostCode = this.PostCode
+            };
+        }
+
         public static implicit operator Address(AddressUI ui)
         {
             return new Address
