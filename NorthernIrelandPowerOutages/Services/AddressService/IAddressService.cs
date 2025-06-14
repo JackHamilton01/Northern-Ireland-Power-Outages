@@ -7,5 +7,6 @@ namespace AddressService
     {
         Task<Address> GetAddressByIdAsync(int id);
         Task<Address?> GetMatchAsync(AddressUI inputAddress);
+        Task<IEnumerable<Address>> GetFavouriteAddresses(string userId);
     }
 }

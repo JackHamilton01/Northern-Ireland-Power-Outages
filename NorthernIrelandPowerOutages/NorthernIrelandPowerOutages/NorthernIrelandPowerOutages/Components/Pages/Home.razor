@@ -1,4 +1,7 @@
 ﻿@page "/"
+@using AddressService
+@using Domain.Backend
+@using Infrastructure.Data
 @using Infrastructure.Email
 @using Infrastructure.Helpers
 @using Infrastructure.ProjectSettings
@@ -9,6 +12,7 @@
 @using System.Text.Json
 @using Infrastructure.Sms
 @using NorthernIrelandPowerOutages.Services
+@using System.Security.Claims
 @inject HttpClient Http
 @inject IHttpClientFactory ClientFactory
 @inject IJSRuntime JS
@@ -19,6 +23,9 @@
 @rendermode InteractiveServer
 @inject IDeviceLocationService LocationService
 @inject IFaultPollingService FaultPollingService
+@inject IAddressService AddressService
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
 <PageTitle>Home</PageTitle>
@@ -103,7 +110,7 @@
         mapInitialised = true;
     }
 
-    private void DisplayFaults(FaultModel? faults)
+    private async Task DisplayFaults(FaultModel? faults)
     {
         if (faults is null)
         {
@@ -131,11 +138,28 @@
         {
             markers.Add(homePin);
         }
+
+        var favouriteAddresses = await GetFavouriteAddresses();
+        if (favouriteAddresses is not null)
+        {
+            foreach (var address in favouriteAddresses)
+            {
+                markers.Add(new GoogleMapPin()
+                {
+                    Name = address.PostCode,
+                    StatusMessage = string.Empty,
+                    Latitude = address.Latitude,
+                    Longitude = address.Longitude,
+                    IsFault = false,
+                    Icon = GoogleMapPinIconConstants.Favourite,
+                });
+            }
+        }
     }
 
     private async void FaultPollingService_OnFaultsUpdated(FaultModel? faultData, bool isFirstPoll)
     {
-        DisplayFaults(faultData);
+        await DisplayFaults(faultData);
 
         if (IsHomePage)
         {
@@ -197,6 +221,29 @@
         {
             await CalculateCountyOutages();
         }
+    }
+
+    private async Task<IEnumerable<Address>> GetFavouriteAddresses()
+    {
+        AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity?.IsAuthenticated == true)
+        {
+            string? userId = claimsPrincipal.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userId is not null)
+            {
+                return await AddressService.GetFavouriteAddresses(userId);
+
+                // if (retrievedAddresses is not null)
+                // {
+                //     this.addresses.AddRange(retrievedAddresses.Select(a => (AddressUI)a));
+                // }
+            }
+        }
+
+        return null;
     }
 
     private async Task CalculateCountyOutages()

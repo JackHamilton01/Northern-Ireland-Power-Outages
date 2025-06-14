@@ -4,5 +4,6 @@
     {
         public const string Default = "Default";
         public const string Home = "Home";
+        public const string Favourite = "Favourite";
     }
 }

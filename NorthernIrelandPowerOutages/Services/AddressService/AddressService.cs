@@ -45,6 +45,15 @@ namespace AddressService
             return candidates.FirstOrDefault(a => AddressEquals(inputAddress, a));
         }
 
+        public async Task<IEnumerable<Address>> GetFavouriteAddresses(string userId)
+        {
+            var user = await dbContext.Users
+                .Include(u => u.FavoriteAddresses)
+                .FirstAsync(u => u.Id == userId);
+
+            return user.FavoriteAddresses;
+        }
+
         private bool AddressEquals(Address a, Address b)
         {
             return string.Equals(a.StreetName?.Trim(), b.StreetName?.Trim(), StringComparison.OrdinalIgnoreCase)
