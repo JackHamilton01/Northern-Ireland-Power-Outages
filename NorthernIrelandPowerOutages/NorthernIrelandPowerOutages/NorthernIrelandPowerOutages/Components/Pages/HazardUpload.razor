@@ -1,0 +1,165 @@
+﻿@page "/hazard-upload"
+@using Domain.Frontend
+@using Infrastructure.Data
+@rendermode InteractiveServer
+@inject IConfiguration config
+@inject ApplicationDbContext DbContext
+
+<h3>HazardUpload</h3>
+
+<EditForm Model="@hazardInput" OnValidSubmit="SaveHazard" FormName="hazardForm">
+    <div>
+        <label for="title">Title</label>
+        <InputText id="title" class="form-control" @bind-Value="hazardInput.Title" />
+    </div>
+    <div>
+        <label for="description">Description</label>
+        <InputTextArea id="description" class="form-control" @bind-Value="hazardInput.Description" />
+    </div>
+    <div>
+        <label>Images</label>
+        <InputFile OnChange="@UploadHazards" accept=".png,.jpg,.jpeg" />
+    </div>
+
+    <button class="btn btn-primary mt-3" type="submit">Save</button>
+</EditForm>
+
+@if (errors.Count() > 0)
+{
+    <h2>Errors</h2>
+    <ul class="text-danger">
+        @foreach (var error in errors)
+        {
+            <li>@error</li>
+        }
+    </ul>
+}
+
+<img src="@CreateWebPath(hazardInput.FileName)" width="400" />
+
+@code {
+    private HazardUI hazardInput = new();
+    private List<IBrowserFile> uploadedImages = new();
+
+    private long maxFileSize = 3 * 1024 * 1024; // 3 MB
+    private int maxAllowedFiles = 3;
+    private List<string> errors = new();
+    private IBrowserFile? file = null;
+
+    private string CreateWebPath(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return string.Empty;
+        }
+
+        return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
+    }
+
+    private async Task SaveHazard(EditContext args)
+    {
+        try
+        {
+            string relativePath = await CaptureFile();
+            hazardInput.FileName = relativePath;
+
+            DbContext.Hazards.Add(hazardInput);
+            DbContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            errors.Add($"Error: {ex.Message}");
+        }
+    }
+
+    private void UploadHazards(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+    }
+
+    private async Task<string> CaptureFile()
+    {
+        if (file is null)
+        {
+            return "";
+        }
+
+        // if (e.FileCount > maxAllowedFiles)
+        // {
+        //     errors.Add($"Error: attempting to upload {e.FileCount} files, but only {maxAllowedFiles} files are allowed");
+        //     return;
+        // }
+
+        try
+        {
+            string newFileName = Path.ChangeExtension(
+                Path.GetRandomFileName(),
+                Path.GetExtension(file.Name)); // Trust extension from upload but not file name
+
+            string? fileStorageLocation = config.GetValue<string>("FileStorage");
+            if (string.IsNullOrWhiteSpace(fileStorageLocation))
+            {
+                throw new Exception("File storage location is not configured.");
+            }
+
+            string path = Path.Combine(
+                fileStorageLocation,
+                "jhamilton",
+                newFileName);
+
+            string relativePath = Path.Combine(
+                "jhamilton",
+                newFileName);
+
+            Directory.CreateDirectory(Path.Combine(
+                fileStorageLocation,
+                "jhamilton"));
+
+            await using FileStream fs = new(path, FileMode.Create);
+            await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+            return relativePath;
+        }
+        catch (Exception)
+        {
+            errors.Add($"Error: unable to upload file {file.Name}");
+            throw;
+        }
+
+        // foreach (var file in e.GetMultipleFiles(maxAllowedFiles))
+        // {
+        //     try
+        //     {
+        //         string newFileName = Path.ChangeExtension(
+        //             Path.GetRandomFileName(),
+        //             Path.GetExtension(file.Name)); // Trust extension from upload but not file name
+
+        //         string? fileStorageLocation = config.GetValue<string>("FileStorage");
+        //         if (string.IsNullOrWhiteSpace(fileStorageLocation))
+        //         {
+        //             throw new Exception("File storage location is not configured.");
+        //         }
+
+        //         string path = Path.Combine(
+        //             fileStorageLocation,
+        //             "jhamilton",
+        //             newFileName);
+
+        //         Directory.CreateDirectory(Path.Combine(
+        //             fileStorageLocation,
+        //             "jhamilton"));
+
+        //         await using FileStream fs = new(path, FileMode.Create);
+        //         await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
+        //     }
+        //     catch (Exception)
+        //     {
+        //         errors.Add($"Error: unable to upload file {file.Name}");
+        //     }
+        // }
+    }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+    }
+}

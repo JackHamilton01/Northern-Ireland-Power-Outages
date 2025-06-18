@@ -9,6 +9,7 @@ namespace Infrastructure.Data
         : IdentityDbContext<ApplicationUser>(options)
     {
         public DbSet<Address> Addresses { get; set;  }
+        public DbSet<Hazard> Hazards { get; set;  }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

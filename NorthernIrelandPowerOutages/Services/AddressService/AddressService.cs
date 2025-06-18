@@ -54,14 +54,14 @@ namespace AddressService
             return user.FavoriteAddresses;
         }
 
-        private bool AddressEquals(Address a, Address b)
+        private bool AddressEquals(Address firstAddress, Address secondAddress)
         {
-            return string.Equals(a.StreetName?.Trim(), b.StreetName?.Trim(), StringComparison.OrdinalIgnoreCase)
-                && a.StreetNumber ==  b.StreetNumber
-                && string.Equals(a.City?.Trim(), b.City?.Trim(), StringComparison.OrdinalIgnoreCase)
-                && string.Equals(a.County?.Trim(), b.County?.Trim(), StringComparison.OrdinalIgnoreCase)
-                && string.Equals(a.PostCode?.Trim(), b.PostCode?.Trim(), StringComparison.OrdinalIgnoreCase)
-                && string.Equals(a.BuildingDetails?.Trim(), b.BuildingDetails?.Trim(), StringComparison.OrdinalIgnoreCase);
+            return string.Equals(firstAddress.StreetName?.Trim(), secondAddress.StreetName?.Trim(), StringComparison.OrdinalIgnoreCase)
+                && firstAddress.StreetNumber ==  secondAddress.StreetNumber
+                && string.Equals(firstAddress.City?.Trim(), secondAddress.City?.Trim(), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(firstAddress.County?.Trim(), secondAddress.County?.Trim(), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(firstAddress.PostCode?.Trim(), secondAddress.PostCode?.Trim(), StringComparison.OrdinalIgnoreCase)
+                && string.Equals(firstAddress.BuildingDetails?.Trim(), secondAddress.BuildingDetails?.Trim(), StringComparison.OrdinalIgnoreCase);
         }
 
         private bool IsValidUkPostcode(string? postcode)
