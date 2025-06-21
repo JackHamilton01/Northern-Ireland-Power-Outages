@@ -30,51 +30,54 @@
 
 <PageTitle>Home</PageTitle>
 
-<div>Outages</div>
-<div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-    @foreach (var kvp in countyOutages)
-    {
-        @* <div>@kvp.Key: @kvp.Value outage(s)</div> *@
-        <div>@kvp.Key: @kvp.Value</div>
-    }
-</div>
+<div style="position: relative; height: 100vh; width: 100%;">
+    <div id="map" style="height: 100%; width: 100%; position: absolute; top: 0; left: 0; z-index: 0;"></div>
 
-<div style="height: 100vh; width: 100%;">
+    <div style="position: absolute; top: 20px; left: 20px; z-index: 1000;" class="mt-5">
+        <div>Outages</div>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            @foreach (var kvp in countyOutages)
+            {
+                @* <div>@kvp.Key: @kvp.Value outage(s)</div> *@
+                <div>@kvp.Key: @kvp.Value</div>
+            }
+        </div>
 
-    <button @onclick="ToggleGeoJson" disabled="@isCalculatingCountyOutages">Toggle GeoJson</button>
-    <button @onclick="ZoomIn">Zoom In</button>
-    <button @onclick="ZoomOut">Zoom Out</button>
-    <button @onclick="SendMessage">Send Message</button>
-    <button @onclick="SendEmail">Send Email</button>
-  
-    <a href="/account/edit">Edit User</a>
+        <div>
 
-    <a href="/search">Search</a>
-    <a href="/hazard-upload">Upload Hazard</a>
+            <button @onclick="ToggleGeoJson" disabled="@isCalculatingCountyOutages">Toggle GeoJson</button>
+            <button @onclick="ZoomIn">Zoom In</button>
+            <button @onclick="ZoomOut">Zoom Out</button>
+            <button @onclick="SendMessage">Send Message</button>
+            <button @onclick="SendEmail">Send Email</button>
 
-    <div id="map" style="height: 100vh; width: 100%;"></div>
+            <a href="/account/edit">Edit User</a>
 
-    @if (showModal)
-    {
-        <div class="modal show d-block" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Marker Clicked</h5>
-                        <button type="button" class="btn-close" @onclick="CloseModal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>@googleMapPin.Name</p>
-                        <p>@googleMapPin.Latitude</p>
-                        <p>@googleMapPin.Longitude</p>
+            <a href="/search">Search</a>
+            <a href="/hazard-upload">Upload Hazard</a>
+
+
+            @if (showModal)
+            {
+                <div class="modal show d-block" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Marker Clicked</h5>
+                                <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>@googleMapPin.Name</p>
+                                <p>@googleMapPin.Latitude</p>
+                                <p>@googleMapPin.Longitude</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         </div>
-    }
+    </div>
 </div>
-
-
 
 @code
 {
@@ -275,7 +278,7 @@
         }
 
         isCalculatingCountyOutages = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     [JSInvokable]

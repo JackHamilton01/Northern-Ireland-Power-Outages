@@ -7,12 +7,28 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <nav class="navbar navbar-light bg-light">
+                <a class="navbar-brand" href="#">
+                    <img src="/Images/Brand/Icon.png" width="30" height="30" class="d-inline-block align-top" alt="">
+                </a>
+
+                <ul class="navbar-nav d-flex flex-row ms-auto">
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="/">Map</a>
+                    </li>
+                    <li class="nav-item me-3">
+                        <a class="nav-link" href="/search">Details</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/account/edit">You</a>
+                    </li>
+                </ul>
+            </nav>
         </div>
 
-        <article class="content px-4">
+        <div>
             @Body
-        </article>
+        </div>
     </main>
 </div>
 
