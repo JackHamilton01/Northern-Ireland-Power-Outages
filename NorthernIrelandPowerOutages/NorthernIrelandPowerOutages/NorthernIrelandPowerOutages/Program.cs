@@ -3,6 +3,7 @@ using Infrastructure.Data;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.AI;
 using NorthernIrelandPowerOutages.Client.Pages;
 using NorthernIrelandPowerOutages.Components;
 using NorthernIrelandPowerOutages.Components.Account;
@@ -66,6 +67,8 @@ namespace NorthernIrelandPowerOutages
 
             // Add additional endpoints required by the Identity /Account Razor components.
             app.MapAdditionalIdentityEndpoints();
+
+            var chatClient = app.Services.GetRequiredService<IChatClient>();
 
             app.Run();
         }

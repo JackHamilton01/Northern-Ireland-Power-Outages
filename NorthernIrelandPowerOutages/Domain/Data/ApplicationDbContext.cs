@@ -1,4 +1,5 @@
 
+using Domain;
 using Domain.Backend;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,8 @@ namespace Infrastructure.Data
     {
         public DbSet<Address> Addresses { get; set;  }
         public DbSet<Hazard> Hazards { get; set;  }
+        public DbSet<OutagePredictionTrainingData> OutagePredictionTrainingData { get; set; }
+        public DbSet<OutagePredictionModel> OutagePredictionModels { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

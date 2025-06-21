@@ -1,9 +1,13 @@
 ﻿@page "/hazard-upload"
 @using Domain.Frontend
+@using HazardVerifyService
 @using Infrastructure.Data
+@using Microsoft.Extensions.AI
+@using NorthernIrelandPowerOutages.Models
 @rendermode InteractiveServer
 @inject IConfiguration config
 @inject ApplicationDbContext DbContext
+@inject IChatClient ChatClient
 
 <h3>HazardUpload</h3>
 
@@ -21,6 +25,16 @@
         <InputFile OnChange="@UploadHazards" accept=".png,.jpg,.jpeg" />
     </div>
 
+    <div class="mt-2">
+        @foreach (var image in uploadedImages)
+        {
+            <div class="mb-2">
+                <img src="@image.PreviewUrl" width="200" />
+                <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => RemoveImage(image))">Remove</button>
+            </div>
+        }
+    </div>
+
     <button class="btn btn-primary mt-3" type="submit">Save</button>
 </EditForm>
 
@@ -35,11 +49,14 @@
     </ul>
 }
 
-<img src="@CreateWebPath(hazardInput.FileName)" width="400" />
+@* <img src="@CreateWebPath(hazardInput.FileName)" width="400" /> *@
+
+<p>Image recognition response: @response</p>
 
 @code {
+    private string response = "No response yet";
     private HazardUI hazardInput = new();
-    private List<IBrowserFile> uploadedImages = new();
+    private List<ImageWithPreviewUI> uploadedImages = new();
 
     private long maxFileSize = 3 * 1024 * 1024; // 3 MB
     private int maxAllowedFiles = 3;
@@ -56,12 +73,28 @@
         return Path.Combine(config.GetValue<string>("WebStorageRoot"), relativePath);
     }
 
+    private async  Task<string> GetImagePreviewUrl(IBrowserFile file)
+    {
+        using var stream = file.OpenReadStream(maxAllowedSize: 10_000_000);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var base64 = Convert.ToBase64String(ms.ToArray());
+        return $"data:{file.ContentType};base64,{base64}";
+    }
+
     private async Task SaveHazard(EditContext args)
     {
         try
         {
             string relativePath = await CaptureFile();
             hazardInput.FileName = relativePath;
+
+            var t = Path.Combine(config.GetValue<string>("FileStorage"), relativePath);
+
+            var result = await LlavaClient.CallLlavaAsync(Path.Combine(config.GetValue<string>("FileStorage"), relativePath),
+            $"Is this an image of {hazardInput.Title}");
+
+            response = result.Response;
 
             DbContext.Hazards.Add(hazardInput);
             DbContext.SaveChanges();
@@ -72,9 +105,21 @@
         }
     }
 
-    private void UploadHazards(InputFileChangeEventArgs e)
+    private void RemoveImage(ImageWithPreviewUI image)
+    {
+        uploadedImages.Remove(image);
+    }
+
+    private async Task UploadHazards(InputFileChangeEventArgs e)
     {
         file = e.File;
+        
+        var previewUrl = await GetImagePreviewUrl(file);
+        uploadedImages.Add(new ImageWithPreviewUI
+        {
+            File = file,
+            PreviewUrl = previewUrl
+        });
     }
 
     private async Task<string> CaptureFile()
