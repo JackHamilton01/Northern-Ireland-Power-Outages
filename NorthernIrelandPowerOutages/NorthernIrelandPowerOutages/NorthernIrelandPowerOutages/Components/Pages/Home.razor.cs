@@ -6,6 +6,7 @@ using Microsoft.JSInterop;
 using NorthernIrelandPowerOutages.Counties;
 using NorthernIrelandPowerOutages.Enums;
 using NorthernIrelandPowerOutages.Models;
+using System.Diagnostics;
 using System.Security.Claims;
 
 namespace NorthernIrelandPowerOutages.Components.Pages
@@ -58,6 +59,8 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                 {
                     (double latitude, double longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(outageMessage.Point.Easting, outageMessage.Point.Northing);
 
+                    string icon = outageMessage.OutageType == "Planned" ? GoogleMapPinIconConstants.Planned : GoogleMapPinIconConstants.Default;
+
                     markers.Add(new GoogleMapPin()
                     {
                         Name = outageMessage.PostCode,
@@ -65,6 +68,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                         Latitude = latitude,
                         Longitude = longitude,
                         IsFault = true,
+                        Icon = icon,
                     });
                 }
             }
@@ -74,6 +78,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                 markers.Add(homePin);
             }
 
+            Debug.WriteLine("Getting favourite addresses");
             var favouriteAddresses = await GetFavouriteAddresses();
             if (favouriteAddresses is not null)
             {
@@ -104,7 +109,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
             if (isFirstPoll && homePin is not null)
             {
-                await module.InvokeVoidAsync("MoveToLocation", homePin.Latitude, homePin.Longitude);
+                //await module.InvokeVoidAsync("MoveToLocation", homePin.Latitude, homePin.Longitude);
             }
 
             await InvokeAsync(StateHasChanged);
@@ -116,6 +121,8 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             {
                 module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
 
+                Debug.WriteLine("---");
+                Debug.WriteLine("Subscribed");
                 FaultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
                 await FaultPollingService.StartAsync();
                 return;
@@ -148,7 +155,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
                 if (location is not null)
                 {
-                    await module.InvokeVoidAsync("MoveToLocation", location.Latitude, location.Longitude);
+                    //await module.InvokeVoidAsync("MoveToLocation", location.Latitude, location.Longitude);
                 }
             }
 

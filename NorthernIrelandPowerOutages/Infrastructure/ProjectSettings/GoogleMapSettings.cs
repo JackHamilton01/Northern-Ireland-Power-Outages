@@ -9,5 +9,6 @@ namespace Infrastructure.ProjectSettings
     public class GoogleMapsSettings
     {
         public required string ApiKey { get; set; }
+        public required string GoogleMapsString { get; set; }
     }
 }

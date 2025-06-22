@@ -1,6 +1,7 @@
 ﻿@using Infrastructure.ProjectSettings
 @inject Microsoft.Extensions.Options.IOptions<GoogleMapsSettings> GoogleMaps
 
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -20,6 +21,8 @@
     <Routes />
     <script src="_framework/blazor.web.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=@GoogleMaps.Value.ApiKey" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/markerclustererplus/dist/markerclusterer.min.js"></script>
+
     <script src="JavaScript/Location.js"></script>
 </body>
 

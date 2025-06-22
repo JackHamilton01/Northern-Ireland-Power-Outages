@@ -2,6 +2,7 @@
 using Domain.Frontend;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -47,6 +48,8 @@ namespace AddressService
 
         public async Task<IEnumerable<Address>> GetFavouriteAddresses(string userId)
         {
+            Debug.WriteLine($"Retrieving favorite addresses for user ID: {userId}");
+
             var user = await dbContext.Users
                 .Include(u => u.FavoriteAddresses)
                 .FirstAsync(u => u.Id == userId);

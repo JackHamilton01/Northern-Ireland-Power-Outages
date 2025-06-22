@@ -31,15 +31,4 @@
 		<Folder Include="wwwroot\Images\Hazards\" />
 		<Folder Include="wwwroot\Images\Brand\" />
 	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Include="Components\Pages\Home.razor.cs">
-			<DependentUpon>Home.razor</DependentUpon>
-		</Compile>
-			<Compile Include="Components\Pages\Home.razor.js">
-			<DependentUpon>Home.razor</DependentUpon>
-		</Compile>
-	</ItemGroup>
-
-
 </Project>

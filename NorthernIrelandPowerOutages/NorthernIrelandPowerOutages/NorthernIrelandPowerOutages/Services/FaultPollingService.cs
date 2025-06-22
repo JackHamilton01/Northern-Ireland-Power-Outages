@@ -40,6 +40,8 @@ namespace NorthernIrelandPowerOutages.Services
             var response = await httpClient.GetFromJsonAsync<FaultModel>("https://localhost:7125/faults");
 
             CurrentFault = response;
+
+            Debug.WriteLine($"Invoking");
             OnFaultsReceived?.Invoke(response, isFirstPoll);
         }
     }
