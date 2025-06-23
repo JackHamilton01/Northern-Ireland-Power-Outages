@@ -1,5 +1,4 @@
 ﻿using FaultsAPI.Endpoints;
-using FaultsAPI.HealthChecks;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -10,8 +9,8 @@ namespace FaultsAPI.Startup
         public static void AddAllHealthChecks(this IServiceCollection services)
         {
             services.AddHealthChecks()
-                .AddCheck<HealthyHealthCheck>("Healthy", tags: new[] { "healthy" })
-                .AddCheck<DegradedHealthCheck>("Degraded", tags: new[] { "degraded" })
+                //.AddCheck<HealthyHealthCheck>("Healthy", tags: new[] { "healthy" })
+                //.AddCheck<DegradedHealthCheck>("Degraded", tags: new[] { "degraded" })
                 .AddCheck<UnhealthyHealthCheck>("Unhealthy", tags: new[] { "unhealthy" })
                 .AddCheck<RandomHealthCheck>("Random", tags: new[] { "random" });
         }

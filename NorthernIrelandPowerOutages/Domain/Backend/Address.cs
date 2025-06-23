@@ -26,7 +26,9 @@ namespace Domain.Backend
                 BuildingDetails = address.BuildingDetails,
                 City = address.City,
                 County = address.County,
-                PostCode = address.PostCode
+                PostCode = address.PostCode,
+                Latitude = address.Latitude,
+                Longitude = address.Longitude
             };
         }
     }

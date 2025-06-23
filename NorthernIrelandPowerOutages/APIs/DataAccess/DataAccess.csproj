@@ -4,13 +4,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>a258fb1c-a359-4801-8bf8-b4cc685ed4e9</UserSecretsId>
+    <UserSecretsId>b2980503-c03a-435c-a04b-806a1d73bc35</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.4.3" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.5.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -34,8 +34,8 @@ namespace GeocodeService
             var json = await response.Content.ReadAsStringAsync();
             var result = JsonSerializer.Deserialize<GoogleGeocodeResponse>(json, options);
 
-            // Use street_address to get the most accurate coordinates
-            return result?.Results?.FirstOrDefault(r => r.Types.FirstOrDefault() == "street_address")?.Geometry?.Location;
+            // Always get the first as it is the most accurate
+            return result?.Results?.FirstOrDefault()?.Geometry?.Location;
         }
 
         public async Task<List<string>> GetAddressesFromPostcodeAsync(string postcode)

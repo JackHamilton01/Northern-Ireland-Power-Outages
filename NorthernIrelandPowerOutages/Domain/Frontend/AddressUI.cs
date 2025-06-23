@@ -11,6 +11,8 @@ namespace Domain.Frontend
         public string City { get; set; }
         public string County { get; set; }
         public string PostCode { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
 
         public AddressUI Clone()
         {
@@ -22,7 +24,9 @@ namespace Domain.Frontend
                 BuildingDetails = this.BuildingDetails,
                 City = this.City,
                 County = this.County,
-                PostCode = this.PostCode
+                PostCode = this.PostCode,
+                Latitude = this.Latitude,
+                Longitude = this.Longitude
             };
         }
 
@@ -37,8 +41,8 @@ namespace Domain.Frontend
                 City = ui.City,
                 County = ui.County,
                 PostCode = ui.PostCode,
-                Latitude = 0,
-                Longitude = 0
+                Latitude = ui.Latitude,
+                Longitude = ui.Longitude
             };
         }
 

@@ -115,7 +115,7 @@ else
 
     private async Task SaveAddressChangesToDatabase(AddressUI addressToSave)
     {
-        Address? existingAddress = await AddressService.GetMatchAsync(addressToSave);
+        var existingAddress = await AddressService.FindMatchingAddress(addressToSave);
 
         ApplicationUser user = await DbContext.Users
             .Include(u => u.FavoriteAddresses)

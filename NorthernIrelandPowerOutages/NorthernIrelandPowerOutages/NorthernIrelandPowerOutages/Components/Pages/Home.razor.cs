@@ -1,4 +1,5 @@
 ﻿using Domain.Backend;
+using Domain.Frontend;
 using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -165,7 +166,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             }
         }
 
-        private async Task<IEnumerable<Address>> GetFavouriteAddresses()
+        private async Task<IEnumerable<AddressUI>> GetFavouriteAddresses()
         {
             AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             ClaimsPrincipal claimsPrincipal = authState.User;

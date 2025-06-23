@@ -23,17 +23,22 @@ namespace NorthernIrelandPowerOutages.Startup
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connectionString));
 
+            builder.Services.AddHttpClient();
+
             builder.Services.AddScoped<ISmsSender, SmsSender>();
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IDeviceLocationService, DeviceLocationService>();
-            builder.Services.AddScoped<IAddressService, AddressService.AddressService>();
+
+            builder.Services.AddHttpClient<IAddressService, AddressService.AddressService>(client =>
+            {
+            });
+
+
             builder.Services.AddScoped<IGeocodeService, GeocodeService.GeocodeService>();
 
             builder.Services.AddSingleton<IFaultPollingService, FaultPollingService>();
 
             builder.Services.AddChatClient(HazardVerify.GetOllamaApiClient());
-
-            builder.Services.AddHttpClient();
 
             builder.Services.Configure<FaultsApiSettings>(
                 builder.Configuration.GetSection("FaultsApiSettings"));
