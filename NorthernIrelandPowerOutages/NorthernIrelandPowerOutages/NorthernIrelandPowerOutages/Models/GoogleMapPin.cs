@@ -11,5 +11,8 @@ namespace NorthernIrelandPowerOutages.Models
         public int Size { get; set; }
         public string Icon { get; set; }
         public bool IsFault { get; set; }
+        public required MarkerType MarkerType { get; set; }
+
+        public List<GoogleMapPin>? ChildPins { get; set; }
     }
 }

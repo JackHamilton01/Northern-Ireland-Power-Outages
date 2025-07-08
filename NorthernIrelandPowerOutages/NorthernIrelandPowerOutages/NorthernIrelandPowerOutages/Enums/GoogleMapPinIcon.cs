@@ -6,5 +6,7 @@
         public const string Home = "Home";
         public const string Favourite = "Favourite";
         public const string Planned = "Planned";
+        public const string Hazard = "Hazard";
+        public const string Multiple = "Multiple";
     }
 }

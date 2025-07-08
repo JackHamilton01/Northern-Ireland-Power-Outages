@@ -1,0 +1,88 @@
+﻿@using GeocodeService
+@using Infrastructure.Data
+@inject IConfiguration config
+@inject ApplicationDbContext DbContext
+@inject IGeocodeService GeocodeService
+
+<div class="overlay">
+    <div class="overlay-content">
+
+        <h1>Hazard Upload</h1>
+
+        <EditForm Model="@hazardInput" OnValidSubmit="SaveHazard" FormName="hazardForm">
+            <div>
+                <label for="title">Title</label>
+                <InputText id="title" class="form-control" @bind-Value="hazardInput.Title" />
+            </div>
+            <div>
+                <label for="description">Description</label>
+                <InputTextArea id="description" class="form-control" @bind-Value="hazardInput.Description" />
+            </div>
+            <div>
+                <label>Images</label>
+                <InputFile OnChange="@UploadHazards" accept=".png,.jpg,.jpeg" disabled="@(!isMaxNumberOfImages)" />
+            </div>
+
+            <div class="mt-2">
+                @foreach (var image in uploadedImages)
+                {
+                    <div class="mb-2">
+                        <img src="@image.PreviewUrl" width="200" />
+                        <button type="button" class="btn btn-danger btn-sm" @onclick="@(() => RemoveImage(image))">Remove</button>
+                    </div>
+                }
+            </div>
+
+            <button class="btn btn-primary mt-3" type="submit">Save</button>
+
+            @if (isSaving)
+            {
+                <div class="d-flex justify-content-center align-items-center position-fixed top-0 start-0 w-100 h-100 bg-dark bg-opacity-75" style="z-index: 1050;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+        </EditForm>
+
+        @if (errors.Count() > 0)
+        {
+            <h2>Errors</h2>
+            <ul class="text-danger">
+                @foreach (var error in errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        }
+
+        @* <img src="@CreateWebPath(hazardInput.FileName)" width="400" /> *@
+
+        <p style="font-size: 8px; max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            @response
+        </p>
+
+        <button @onclick="CloseOverlay">Close</button>
+    </div>
+</div>
+
+<style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .overlay-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 8px;
+    }
+</style>

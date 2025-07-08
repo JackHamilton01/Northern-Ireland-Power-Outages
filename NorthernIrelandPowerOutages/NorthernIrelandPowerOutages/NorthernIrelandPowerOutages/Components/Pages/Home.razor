@@ -1,4 +1,4 @@
-﻿ @page "/"
+﻿@page "/"
 @using AddressService
 @using Domain.Backend
 @using Infrastructure.Data
@@ -6,6 +6,7 @@
 @using Infrastructure.Helpers
 @using Infrastructure.ProjectSettings
 @using LocationService
+@using NorthernIrelandPowerOutages.Components.Overlays
 @using NorthernIrelandPowerOutages.Counties
 @using NorthernIrelandPowerOutages.Enums
 @using NorthernIrelandPowerOutages.Models
@@ -13,20 +14,21 @@
 @using Infrastructure.Sms
 @using NorthernIrelandPowerOutages.Services
 @using System.Security.Claims
+@implements IAsyncDisposable
 @inject HttpClient Http
 @inject IHttpClientFactory ClientFactory
 @inject IJSRuntime JS
 @inject ISmsSender SmsSender
 @inject IEmailSender EmailSender
-@implements IAsyncDisposable
 @inject Microsoft.Extensions.Options.IOptionsSnapshot<PersonalSettings> PersonalSettings
-@rendermode InteractiveServer
 @inject IDeviceLocationService LocationService
 @inject IFaultPollingService FaultPollingService
 @inject IAddressService AddressService
 @inject ApplicationDbContext DbContext
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
@@ -43,6 +45,37 @@
             }
         </div>
 
+        
+        @if (showUploadHazardOverlay)
+        {
+            <HazardUploadOverlay OnClose="HideHazardUploadOverlay" Latitude="@NewHazardLatitude" Longitude="@NewHazardLongitude"/>
+        }
+
+        @if (showHazardViewOverlay)
+        {
+            <HazardViewOverlay OnClose="HideHazardViewOverlay" Hazard="@activeHazard"/>
+        }
+
+        @if (showMultiplePinOverlay)
+        {
+            <MultiplePinOverlay OnClose="HideMultiplePinOverlay" ChildPins="@childPins" />
+        }
+
+        <div class="mt-3">
+            <button class="btn @(isPlacingMarkers ? "btn-warning" : "btn-primary")" @onclick="ToggleMarkerPlacement">
+                @(isPlacingMarkers ? "Disable Marker Placement" : "Enable Marker Placement")
+            </button>
+
+            @if (isPlacingMarkers)
+            {
+                <p class="mt-2 text-info">Click anywhere on the map to place a marker.</p>
+            }
+            else
+            {
+                <p class="mt-2 text-muted">Click the button to enable marker placement.</p>
+            }
+        </div>
+
         <div>
 
             <button @onclick="ToggleGeoJson" disabled="@isCalculatingCountyOutages">Toggle GeoJson</button>
@@ -50,6 +83,7 @@
             <button @onclick="ZoomOut">Zoom Out</button>
             <button @onclick="SendMessage">Send Message</button>
             <button @onclick="SendEmail">Send Email</button>
+            @* <button @onclick="UploadHazard">Upload Hazard</button> *@
 
             <a href="/account/edit">Edit User</a>
 

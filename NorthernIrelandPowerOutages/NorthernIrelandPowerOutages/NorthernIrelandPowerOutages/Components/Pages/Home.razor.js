@@ -4,7 +4,8 @@ let isGeoJsonApplied = false;
 let markerCluster = null;
 const countyLabels = [];
 let customOverlays = [];
-
+var blazorComponentRef;
+var mapClickListener;
 export function initMap(markers, dotNetHelper) {
     try {
         const bounds = {
@@ -96,6 +97,12 @@ function getMarkerIconUrl(iconName) {
     }
     else if (iconName === "Planned") {
         iconUrl = "/Images/Map/Planned.png";
+    }
+    else if (iconName === "Hazard") {
+        iconUrl = "/Images/Map/Hazard.png";
+    }
+    else if (iconName === "Multiple") {
+        iconUrl = "/Images/Map/Multiple.png";
     }
     else {
         iconUrl = "/Images/Map/Default.png";
@@ -272,10 +279,13 @@ function toggleMapMarkersVisibility(visible) {
     }
 }
 
-
-export function updateMarkers(markers, dotNetHelper) {
+export function updateMarkers(markers) {
     if (!googleMap) {
         return;
+    }
+
+    if (markerCluster) {
+        markerCluster.clearMarkers();
     }
 
     // Remove existing markers
@@ -302,7 +312,7 @@ export function updateMarkers(markers, dotNetHelper) {
 
         mapMarker.addListener("click", function () {
             googleMap.panTo(mapMarker.getPosition());
-            dotNetHelper.invokeMethodAsync('OnMarkerClicked', marker);
+            blazorComponentRef.invokeMethodAsync('OnMarkerClicked', marker);
         });
     });
 
@@ -345,4 +355,47 @@ function configureClusterStyle() {
             width: 66
         }
     ];
+}
+
+export function setBlazorComponentReference(dotNetObjectRef) {
+    blazorComponentRef = dotNetObjectRef;
+}
+
+export function toggleMapClickListener(enable) {
+    if (!googleMap) {
+        console.error("Map not initialized.");
+        return;
+    }
+
+    if (enable) {
+        // If not already listening, add the listener
+        if (!mapClickListener) {
+            mapClickListener = googleMap.addListener('click', function (event) {
+                if (blazorComponentRef) {
+                    blazorComponentRef.invokeMethodAsync('HandleMapClick', event.latLng.lat(), event.latLng.lng());
+                }
+            });
+            console.log("Map click listener enabled.");
+        }
+    } else {
+        // If currently listening, remove the listener
+        if (mapClickListener) {
+            google.maps.event.removeListener(mapClickListener);
+            mapClickListener = null; // Clear the reference
+            console.log("Map click listener disabled.");
+        }
+    }
+}
+
+export function placeMarker(latitude, longitude, title) {
+    if (!map) {
+        console.error("Map not initialized.");
+        return;
+    }
+
+    if (blazorComponentRef) {
+        blazorComponentRef.invokeMethodAsync('UploadHazard', event.latLng.lat(), event.latLng.lng());
+    }
+
+    map.setCenter(latLng); // Center the map on the new marker
 }

@@ -8,7 +8,10 @@ using NorthernIrelandPowerOutages.Counties;
 using NorthernIrelandPowerOutages.Enums;
 using NorthernIrelandPowerOutages.Models;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Security.Claims;
+using System.Text.Json;
+using Twilio.Http;
 
 namespace NorthernIrelandPowerOutages.Components.Pages
 {
@@ -20,6 +23,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
         private bool showModal = false;
         private bool isCalculatingCountyOutages = true;
+        private bool isPlacingMarkers;
 
         private bool isCalculatingCountyOutagesStarted = false;
         private bool mapInitialised;
@@ -28,6 +32,19 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private GoogleMapPin? googleMapPin;
         private CountyMatcher countyMatcher;
         private GoogleMapPin? homePin;
+
+        private bool showUploadHazardOverlay = false;
+        private bool showHazardViewOverlay = false;
+        private bool showMultiplePinOverlay = false;
+        private List<GoogleMapPin>? childPins;
+
+        private void HideHazardUploadOverlay() => showUploadHazardOverlay = false;
+        private void HideHazardViewOverlay() => showHazardViewOverlay = false;
+
+        private double NewHazardLatitude;
+        private double NewHazardLongitude;
+
+        private HazardUI activeHazard;
 
         private bool IsHomePage =>
            string.IsNullOrEmpty(NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
@@ -42,7 +59,6 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         protected async override Task OnInitializedAsync()
         {
             countyMatcher = await CountyMatcher.Create();
-            dotNetObjectReference = DotNetObjectReference.Create(this);
 
             mapInitialised = true;
         }
@@ -53,6 +69,8 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             {
                 return;
             }
+
+            markers.Clear();
 
             foreach (var outageMessage in faults.OutageMessage)
             {
@@ -69,6 +87,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                         Latitude = latitude,
                         Longitude = longitude,
                         IsFault = true,
+                        MarkerType = outageMessage.OutageType == "Planned" ? MarkerType.Planned : MarkerType.Fault,
                         Icon = icon,
                     });
                 }
@@ -93,9 +112,62 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                         Longitude = address.Longitude,
                         IsFault = false,
                         Icon = GoogleMapPinIconConstants.Favourite,
+                        MarkerType = MarkerType.Favourite,
                     });
                 }
             }
+
+            await GetAllHazardsAndDisplay();
+            await HandleApproximateMarkerLocations();
+        }
+
+        private async Task HandleApproximateMarkerLocations(int decimalPlacesForProximity = 4) // Default to 4 decimal places (~11 meters)
+        {
+            var groupedPins = markers
+                .GroupBy(m => new
+                {
+                    LatitudeBucket = Math.Round(m.Latitude, decimalPlacesForProximity),
+                    LongitudeBucket = Math.Round(m.Longitude, decimalPlacesForProximity)
+                })
+                .ToList();
+
+            List<GoogleMapPin> dedupedMarkers = new();
+
+            foreach (var group in groupedPins)
+            {
+                var pinsAtLocation = group.ToList();
+                if (pinsAtLocation.Count == 1)
+                {
+                    // Only one pin in this "bucket", add as is
+                    dedupedMarkers.Add(pinsAtLocation[0]);
+                }
+                else
+                {
+                    // Multiple pins in this "bucket", create a single "Multiple" pin
+                    // You might want to calculate the centroid for the representative pin's location
+                    var representativeLatitude = pinsAtLocation.Average(p => p.Latitude);
+                    var representativeLongitude = pinsAtLocation.Average(p => p.Longitude);
+
+                    var multiplePin = new GoogleMapPin
+                    {
+                        Name = "Multiple",
+                        StatusMessage = $"{pinsAtLocation.Count} items", // Optional: show count
+                        Latitude = representativeLatitude,
+                        Longitude = representativeLongitude,
+                        IsFault = false, // Or derive this from child pins
+                        MarkerType = MarkerType.Multiple,
+                        Icon = GoogleMapPinIconConstants.Multiple, // Ensure you have this icon
+                        ChildPins = pinsAtLocation // Store all pins in this cluster
+                    };
+                    dedupedMarkers.Add(multiplePin);
+                }
+            }
+
+            // Replace the original markers list with the deduplicated one
+            markers = dedupedMarkers;
+
+            // Trigger UI refresh if this method is called outside of StateHasChanged
+            // StateHasChanged();
         }
 
         private async void FaultPollingService_OnFaultsUpdated(FaultModel? faultData, bool isFirstPoll)
@@ -104,7 +176,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
             if (IsHomePage)
             {
-                await module.InvokeVoidAsync("updateMarkers", markers, dotNetObjectReference);
+                await module.InvokeVoidAsync("updateMarkers", markers);
                 await CalculateCountyOutages();
             }
 
@@ -120,7 +192,10 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         {
             if (firstRender)
             {
+                dotNetObjectReference = DotNetObjectReference.Create(this);
+
                 module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
+                await module.InvokeVoidAsync("setBlazorComponentReference", dotNetObjectReference);
 
                 Debug.WriteLine("---");
                 Debug.WriteLine("Subscribed");
@@ -146,6 +221,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                         Longitude = location.Longitude,
                         Icon = GoogleMapPinIconConstants.Home,
                         IsFault = false,
+                        MarkerType = MarkerType.Home,
                     };
 
                     //markers.Add(homePin);
@@ -221,11 +297,41 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         }
 
         [JSInvokable]
-        public void OnMarkerClicked(GoogleMapPin googleMapPin)
+        public async Task OnMarkerClicked(GoogleMapPin googleMapPin)
         {
             this.googleMapPin = googleMapPin;
-            showModal = true;
+            await ShowOverlay(googleMapPin);
+
             StateHasChanged();
+        }
+
+        private async Task ShowOverlay(GoogleMapPin googleMapPin)
+        {
+            if (googleMapPin.MarkerType == MarkerType.Multiple)
+            {
+                showMultiplePinOverlay = true;
+                childPins = googleMapPin.ChildPins;
+            }
+            else if (googleMapPin.MarkerType == MarkerType.Hazard)
+            {
+                var geoPoint = new[] { googleMapPin.Latitude, googleMapPin.Longitude };
+                var response = await Http.PostAsJsonAsync("https://localhost:7228/hazards/location", geoPoint);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    activeHazard = await response.Content.ReadFromJsonAsync<HazardUI>();
+                }
+                else
+                {
+                    throw new Exception("Request failed");
+                }
+
+                showHazardViewOverlay = true;
+            }
+            else
+            {
+                showModal = true;
+            }
         }
 
         private void CloseModal()
@@ -245,6 +351,77 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         public async void SendEmail()
         {
             await EmailSender.SendEmailAsync(PersonalSettings.Value.Email, "There is a power cut", "There is a disruption to the network");
+        }
+
+        private async Task GetAllHazardsAndDisplay()
+        {
+            var hazards = await Http.GetFromJsonAsync<List<HazardUI>>("https://localhost:7228/hazards");
+
+            //if (string.IsNullOrWhiteSpace(json))
+            //{
+            //    return;
+            //}
+
+            JsonSerializerOptions options = new()
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+
+            //List<HazardUI>? hazards = JsonSerializer.Deserialize<List<HazardUI>>(json, options)
+            //    ?? throw new InvalidOperationException("Failed to deserialize JSON into a valid list of HazardUI.");
+
+            DisplayHazards(hazards);
+        }
+
+        private void DisplayHazards(List<HazardUI> hazards)
+        {
+            if (hazards is not null)
+            {
+                foreach (var hazard in hazards)
+                {
+                    markers.Add(new GoogleMapPin()
+                    {
+                        Name = hazard.Title,
+                        Latitude = hazard.Latitude,
+                        Longitude = hazard.Longitude,
+                        IsFault = false,
+                        MarkerType = MarkerType.Hazard,
+                        Icon = GoogleMapPinIconConstants.Hazard,
+                    });
+                }
+            }
+        }
+
+        private async Task HideMultiplePinOverlay(GoogleMapPin googleMapPin)
+        {
+            showMultiplePinOverlay = false;
+
+            await ShowOverlay(googleMapPin);
+        }
+
+        [JSInvokable]
+        public async Task HandleMapClick(double latitude, double longitude)
+        {
+            NewHazardLatitude = latitude;
+            NewHazardLongitude = longitude;
+
+            showUploadHazardOverlay = true;
+            StateHasChanged();
+
+            isPlacingMarkers = !isPlacingMarkers;
+            await module.InvokeVoidAsync("toggleMapClickListener", isPlacingMarkers);
+            //// Only place a marker if IsPlacingMarkers is true
+            //if (isPlacingMarkers)
+            //{
+            //    await module.InvokeVoidAsync("placeMarker", lat, lng, $"Marker at {lat:F4}, {lng:F4}");
+            //    // You could add logic here to store coordinates, etc.
+            //}
+        }
+
+        private async Task ToggleMarkerPlacement(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+        {
+            isPlacingMarkers = !isPlacingMarkers;
+            await module.InvokeVoidAsync("toggleMapClickListener", isPlacingMarkers);
         }
 
         public ValueTask DisposeAsync()

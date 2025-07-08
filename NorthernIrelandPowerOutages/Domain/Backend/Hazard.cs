@@ -10,12 +10,15 @@ namespace Domain.Backend
 {
     public class Hazard
     {
-        public virtual required int Id { get; set; }
+        public virtual int Id { get; set; }
         public virtual required string Title { get; set; }
-        public virtual required string Description { get; set; }
+        public virtual string? Description { get; set; }
 
-        [MaxLength(2000)]
-        public virtual required string FileName { get; set; }
+        //[MaxLength(2000)]
+        public virtual required List<HazardImage> FileNames { get; set; }
+
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
 
         public static implicit operator HazardUI(Hazard hazard)
         {
@@ -24,7 +27,9 @@ namespace Domain.Backend
                 Id = hazard.Id,
                 Title = hazard.Title,
                 Description = hazard.Description,
-                FileName = hazard.FileName
+                Images = hazard.FileNames,
+                Latitude = hazard.Latitude,
+                Longitude = hazard.Longitude
             };
         }
     }

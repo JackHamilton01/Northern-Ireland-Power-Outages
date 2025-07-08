@@ -1,0 +1,51 @@
+﻿@inject HttpClient Http
+
+<div class="overlay">
+    <div class="overlay-content">
+        <div class="multiple-pin-overlay">
+            @if (ChildPins != null && ChildPins.Count > 0)
+            {
+                <div class="d-flex flex-column gap-2">
+                    @foreach (var pin in ChildPins)
+                    {
+                        <button class="@(pin.MarkerType == Models.MarkerType.Hazard ? "btn btn-danger" :
+                                        (pin.MarkerType == Models.MarkerType.Service ? "btn btn-info" :
+                                        (pin.MarkerType == Models.MarkerType.Favourite ? "btn btn-success" :
+                                        (pin.MarkerType == Models.MarkerType.Home ? "btn btn-secondary" :
+                                        (pin.MarkerType == Models.MarkerType.Prediction ? "btn btn-primary" : "btn btn-primary")))))"
+                            @onclick="() => OnButtonClicked(pin)">
+                        @pin.Name
+                    </button>
+                    }
+                </div>
+            }
+            <button class="btn btn-secondary mt-3" @onclick="CloseOverlay">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .overlay-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 8px;
+        max-width: 600px;
+        width: 90%;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+</style>
