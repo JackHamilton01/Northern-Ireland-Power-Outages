@@ -1,0 +1,60 @@
+﻿@using GeocodeService
+@inject IGeocodeService GeocodeService;
+
+<div>
+    @if (ShowError)
+    {
+        <div style="max-width: 400px;" class="alert alert-danger mb-1" role="alert">
+            @ErrorMessage
+        </div>
+    }
+
+    <div class="input-group mb-5">
+        <input type="text" class="form-control" placeholder="Enter address or postcode..."
+               aria-label="Address or Postcode" aria-describedby="button-addon2"
+               @bind="SearchAddressInput" @bind:event="oninput">
+        <button class="btn btn-primary" type="button" id="button-addon2" @onclick="Search">Search</button>
+    </div>
+</div>
+
+@code {
+    private string enterValidAddressOrPostCodeMessage = "Please enter an address or postcode.";
+    private string notFindMessage = "Could not find a location '{0}'. Please try again.";
+
+    private string ErrorMessage { get; set; } = string.Empty;
+    private bool ShowError { get; set; } = false;
+    private string SearchAddressInput = string.Empty;
+
+    [Parameter]
+    public EventCallback<Tuple<double, double>> OnSearchResultSuccess { get; set; }
+
+    private async Task Search()
+    {
+        ShowError = false;
+        ErrorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(SearchAddressInput))
+        {
+            ShowErrorMessage(enterValidAddressOrPostCodeMessage);
+            return;
+        }
+
+        var result = await GeocodeService.GetLatLongFromAddressAsync(SearchAddressInput);
+
+        if (result != null)
+        {
+            await OnSearchResultSuccess.InvokeAsync(new Tuple<double, double>(result.Latitude, result.Longitude));
+        }
+        else
+        {
+            ShowErrorMessage(string.Format(notFindMessage, SearchAddressInput));
+            ShowError = true;
+        }
+    }
+
+    private void ShowErrorMessage(string message)
+    {
+        ErrorMessage = message;
+        ShowError = true;
+    }
+}

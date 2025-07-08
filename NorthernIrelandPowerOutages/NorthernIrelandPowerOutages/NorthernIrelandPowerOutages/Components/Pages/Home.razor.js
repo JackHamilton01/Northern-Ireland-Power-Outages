@@ -321,10 +321,10 @@ export function updateMarkers(markers) {
     });
 }
 
-export function MoveToLocation(latitude, longitude) {
+export function MoveToLocation(latitude, longitude, zoomLevel) {
     const location = new google.maps.LatLng(latitude, longitude);
     googleMap.panTo(location);
-    googleMap.setZoom(17);
+    googleMap.setZoom(zoomLevel);
 }
 
 export function logToConsole(message) {

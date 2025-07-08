@@ -7,6 +7,7 @@
 @using Infrastructure.ProjectSettings
 @using LocationService
 @using NorthernIrelandPowerOutages.Components.Overlays
+@using NorthernIrelandPowerOutages.Components.Search
 @using NorthernIrelandPowerOutages.Counties
 @using NorthernIrelandPowerOutages.Enums
 @using NorthernIrelandPowerOutages.Models
@@ -110,5 +111,9 @@
                 </div>
             }
         </div>
+    </div>
+
+    <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 1000;">
+        <GoogleMapSearchBox OnSearchResultSuccess="OnSearchResultSuccess" />
     </div>
 </div>

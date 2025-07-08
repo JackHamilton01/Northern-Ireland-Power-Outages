@@ -3,6 +3,7 @@ using Domain.Frontend;
 using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.CodeAnalysis;
 using Microsoft.JSInterop;
 using NorthernIrelandPowerOutages.Counties;
 using NorthernIrelandPowerOutages.Enums;
@@ -397,6 +398,18 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             showMultiplePinOverlay = false;
 
             await ShowOverlay(googleMapPin);
+        }
+
+        private async Task OnSearchResultSuccess(Tuple<double, double> geopoint)
+        {
+            int zoomLevel = 12; // Default zoom level for search results
+            await module.InvokeVoidAsync("MoveToLocation", geopoint.Item1, geopoint.Item2, zoomLevel);
+
+            GoogleMapPin? marker = markers.FirstOrDefault(m => m.Latitude == geopoint.Item1 && m.Longitude == geopoint.Item2);
+            if (marker is not null)
+            {
+                await ShowOverlay(marker);
+            }
         }
 
         [JSInvokable]
