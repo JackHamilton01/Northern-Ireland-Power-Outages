@@ -8,5 +8,6 @@
         public const string Planned = "Planned";
         public const string Hazard = "Hazard";
         public const string Multiple = "Multiple";
+        public const string Prediction = "Prediction";
     }
 }

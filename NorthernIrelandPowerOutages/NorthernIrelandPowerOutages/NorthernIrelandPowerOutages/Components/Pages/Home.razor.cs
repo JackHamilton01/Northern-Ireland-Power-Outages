@@ -1,5 +1,6 @@
 ﻿using Domain.Backend;
 using Domain.Frontend;
+using FaultPredictionService;
 using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -33,6 +34,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private GoogleMapPin? googleMapPin;
         private CountyMatcher countyMatcher;
         private GoogleMapPin? homePin;
+        private FaultPredictionAPI faultPredictionAPI;
 
         private bool showUploadHazardOverlay = false;
         private bool showHazardViewOverlay = false;
@@ -60,6 +62,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         protected async override Task OnInitializedAsync()
         {
             countyMatcher = await CountyMatcher.Create();
+            faultPredictionAPI = new (Http);
 
             mapInitialised = true;
         }
@@ -119,7 +122,37 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             }
 
             await GetAllHazardsAndDisplay();
+            await GetAllFaultPredictions();
             await HandleApproximateMarkerLocations();
+        }
+
+        private async Task GetAllFaultPredictions()
+        {
+            List<PredictionUI>? predictions = await faultPredictionAPI.GetFaultPredictions();
+
+            if (predictions is not null)
+            {
+                foreach (var prediction in predictions)
+                {
+                    // Check if there's already a marker close to this prediction
+                    bool isClose = markers.Any(m =>
+                        Math.Abs(m.Latitude - prediction.Latitude) < 0.01 &&
+                        Math.Abs(m.Longitude - prediction.Longitude) < 0.01);
+
+                    if (!isClose)
+                    {
+                        markers.Add(new GoogleMapPin()
+                        {
+                            Name = "Prediction",
+                            Latitude = prediction.Latitude,
+                            Longitude = prediction.Longitude,
+                            IsFault = false,
+                            MarkerType = MarkerType.Prediction,
+                            Icon = GoogleMapPinIconConstants.Prediction,
+                        });
+                    }
+                }
+            }
         }
 
         private async Task HandleApproximateMarkerLocations(int decimalPlacesForProximity = 4) // Default to 4 decimal places (~11 meters)

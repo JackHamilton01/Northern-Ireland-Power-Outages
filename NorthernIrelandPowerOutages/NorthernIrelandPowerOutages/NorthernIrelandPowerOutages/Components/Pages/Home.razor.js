@@ -104,6 +104,9 @@ function getMarkerIconUrl(iconName) {
     else if (iconName === "Multiple") {
         iconUrl = "/Images/Map/Multiple.png";
     }
+    else if (iconName === "Prediction") {
+        iconUrl = "/Images/Map/Prediction.png";
+    }
     else {
         iconUrl = "/Images/Map/Default.png";
     }

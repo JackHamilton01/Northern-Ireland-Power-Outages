@@ -11,6 +11,7 @@
 		<ProjectReference Include="..\..\Infrastructure\Infrastructure.csproj" />
 		<ProjectReference Include="..\..\Services\AddressService\AddressService.csproj" />
 		<ProjectReference Include="..\..\Services\EmailService\EmailService.csproj" />
+		<ProjectReference Include="..\..\Services\FaultPredictionService\FaultPredictionService.csproj" />
 		<ProjectReference Include="..\..\Services\GeocodeService\GeocodeService.csproj" />
 		<ProjectReference Include="..\..\Services\HazardVerifyService\HazardVerifyService.csproj" />
 		<ProjectReference Include="..\..\Services\LocationService\LocationService.csproj" />
