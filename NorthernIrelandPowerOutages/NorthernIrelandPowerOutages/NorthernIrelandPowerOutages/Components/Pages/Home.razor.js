@@ -101,6 +101,9 @@ function getMarkerIconUrl(iconName) {
     else if (iconName === "Hazard") {
         iconUrl = "/Images/Map/Hazard.png";
     }
+    else if (iconName === "Service") {
+        iconUrl = "/Images/Map/Service.png";
+    }
     else if (iconName === "Multiple") {
         iconUrl = "/Images/Map/Multiple.png";
     }

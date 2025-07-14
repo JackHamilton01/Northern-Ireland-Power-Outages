@@ -39,13 +39,15 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private bool showUploadHazardOverlay = false;
         private bool showHazardViewOverlay = false;
         private bool showMultiplePinOverlay = false;
+        private bool showUploadSelectOverlay = false;
+        private bool showUploadServiceOverlay = false;
         private List<GoogleMapPin>? childPins;
+
+        private double newMarkerLatitude;
+        private double newMarkerLongitude;
 
         private void HideHazardUploadOverlay() => showUploadHazardOverlay = false;
         private void HideHazardViewOverlay() => showHazardViewOverlay = false;
-
-        private double NewHazardLatitude;
-        private double NewHazardLongitude;
 
         private HazardUI activeHazard;
 
@@ -122,36 +124,55 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             }
 
             await GetAllHazardsAndDisplay();
+            await GetAllServicesAndDisplay();
             await GetAllFaultPredictions();
             await HandleApproximateMarkerLocations();
         }
 
+        private async Task GetAllServicesAndDisplay()
+        {
+            var services = await Http.GetFromJsonAsync<List<ServiceUI>>("https://localhost:7228/services");
+
+            JsonSerializerOptions options = new()
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+            DisplayServices(services);
+        }
+
         private async Task GetAllFaultPredictions()
         {
-            List<PredictionUI>? predictions = await faultPredictionAPI.GetFaultPredictions();
-
-            if (predictions is not null)
+            try
             {
-                foreach (var prediction in predictions)
-                {
-                    // Check if there's already a marker close to this prediction
-                    bool isClose = markers.Any(m =>
-                        Math.Abs(m.Latitude - prediction.Latitude) < 0.01 &&
-                        Math.Abs(m.Longitude - prediction.Longitude) < 0.01);
+                List<PredictionUI>? predictions = await faultPredictionAPI.GetFaultPredictions();
 
-                    if (!isClose)
+                if (predictions is not null)
+                {
+                    foreach (var prediction in predictions)
                     {
-                        markers.Add(new GoogleMapPin()
+                        // Check if there's already a marker close to this prediction
+                        bool isClose = markers.Any(m =>
+                            Math.Abs(m.Latitude - prediction.Latitude) < 0.01 &&
+                            Math.Abs(m.Longitude - prediction.Longitude) < 0.01);
+
+                        if (!isClose)
                         {
-                            Name = "Prediction",
-                            Latitude = prediction.Latitude,
-                            Longitude = prediction.Longitude,
-                            IsFault = false,
-                            MarkerType = MarkerType.Prediction,
-                            Icon = GoogleMapPinIconConstants.Prediction,
-                        });
+                            markers.Add(new GoogleMapPin()
+                            {
+                                Name = "Prediction",
+                                Latitude = prediction.Latitude,
+                                Longitude = prediction.Longitude,
+                                IsFault = false,
+                                MarkerType = MarkerType.Prediction,
+                                Icon = GoogleMapPinIconConstants.Prediction,
+                            });
+                        }
                     }
                 }
+            }
+            catch (Exception)
+            {
+
             }
         }
 
@@ -172,36 +193,29 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                 var pinsAtLocation = group.ToList();
                 if (pinsAtLocation.Count == 1)
                 {
-                    // Only one pin in this "bucket", add as is
                     dedupedMarkers.Add(pinsAtLocation[0]);
                 }
                 else
                 {
-                    // Multiple pins in this "bucket", create a single "Multiple" pin
-                    // You might want to calculate the centroid for the representative pin's location
                     var representativeLatitude = pinsAtLocation.Average(p => p.Latitude);
                     var representativeLongitude = pinsAtLocation.Average(p => p.Longitude);
 
                     var multiplePin = new GoogleMapPin
                     {
                         Name = "Multiple",
-                        StatusMessage = $"{pinsAtLocation.Count} items", // Optional: show count
+                        StatusMessage = $"{pinsAtLocation.Count} items", 
                         Latitude = representativeLatitude,
                         Longitude = representativeLongitude,
-                        IsFault = false, // Or derive this from child pins
+                        IsFault = false, 
                         MarkerType = MarkerType.Multiple,
-                        Icon = GoogleMapPinIconConstants.Multiple, // Ensure you have this icon
-                        ChildPins = pinsAtLocation // Store all pins in this cluster
+                        Icon = GoogleMapPinIconConstants.Multiple,
+                        ChildPins = pinsAtLocation
                     };
                     dedupedMarkers.Add(multiplePin);
                 }
             }
 
-            // Replace the original markers list with the deduplicated one
             markers = dedupedMarkers;
-
-            // Trigger UI refresh if this method is called outside of StateHasChanged
-            // StateHasChanged();
         }
 
         private async void FaultPollingService_OnFaultsUpdated(FaultModel? faultData, bool isFirstPoll)
@@ -391,19 +405,10 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         {
             var hazards = await Http.GetFromJsonAsync<List<HazardUI>>("https://localhost:7228/hazards");
 
-            //if (string.IsNullOrWhiteSpace(json))
-            //{
-            //    return;
-            //}
-
             JsonSerializerOptions options = new()
             {
                 PropertyNameCaseInsensitive = true,
             };
-
-            //List<HazardUI>? hazards = JsonSerializer.Deserialize<List<HazardUI>>(json, options)
-            //    ?? throw new InvalidOperationException("Failed to deserialize JSON into a valid list of HazardUI.");
-
             DisplayHazards(hazards);
         }
 
@@ -426,11 +431,54 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             }
         }
 
+        private void DisplayServices(List<ServiceUI> services)
+        {
+            if (services is not null)
+            {
+                foreach (ServiceUI service in services)
+                {
+                    markers.Add(new GoogleMapPin()
+                    {
+                        Name = service.Name,
+                        Latitude = service.Latitude,
+                        Longitude = service.Longitude,
+                        IsFault = false,
+                        MarkerType = MarkerType.Service,
+                        Icon = GoogleMapPinIconConstants.Service,
+                    });
+                }
+            }
+        }
+
         private async Task HideMultiplePinOverlay(GoogleMapPin googleMapPin)
         {
             showMultiplePinOverlay = false;
 
             await ShowOverlay(googleMapPin);
+        }
+
+        private void HandleMarkerTypeSelected(UploadType uploadType)
+        {
+            if (uploadType == UploadType.Hazard)
+            {
+                showUploadHazardOverlay = true;
+            }
+            else if (uploadType == UploadType.Service)
+            {
+                showUploadServiceOverlay = true;
+            }
+
+            HideUploadSelectOverlay();
+        }
+
+        private void HideUploadSelectOverlay()
+        {
+            showUploadSelectOverlay = false;
+        }
+
+        private void HideServiceUploadOverlay()
+        {
+            showUploadServiceOverlay = false;
         }
 
         private async Task OnSearchResultSuccess(Tuple<double, double> geopoint)
@@ -448,20 +496,15 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         [JSInvokable]
         public async Task HandleMapClick(double latitude, double longitude)
         {
-            NewHazardLatitude = latitude;
-            NewHazardLongitude = longitude;
+            newMarkerLatitude = latitude;
+            newMarkerLongitude = longitude;
 
-            showUploadHazardOverlay = true;
+            showUploadSelectOverlay = true;
+
             StateHasChanged();
 
             isPlacingMarkers = !isPlacingMarkers;
             await module.InvokeVoidAsync("toggleMapClickListener", isPlacingMarkers);
-            //// Only place a marker if IsPlacingMarkers is true
-            //if (isPlacingMarkers)
-            //{
-            //    await module.InvokeVoidAsync("placeMarker", lat, lng, $"Marker at {lat:F4}, {lng:F4}");
-            //    // You could add logic here to store coordinates, etc.
-            //}
         }
 
         private async Task ToggleMarkerPlacement(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)

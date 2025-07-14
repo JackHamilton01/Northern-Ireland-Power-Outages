@@ -49,7 +49,7 @@
         
         @if (showUploadHazardOverlay)
         {
-            <HazardUploadOverlay OnClose="HideHazardUploadOverlay" Latitude="@NewHazardLatitude" Longitude="@NewHazardLongitude"/>
+            <HazardUploadOverlay OnClose="HideHazardUploadOverlay" Latitude="@newMarkerLatitude" Longitude="@newMarkerLongitude" />
         }
 
         @if (showHazardViewOverlay)
@@ -60,6 +60,16 @@
         @if (showMultiplePinOverlay)
         {
             <MultiplePinOverlay OnClose="HideMultiplePinOverlay" ChildPins="@childPins" />
+        }
+
+        @if (showUploadSelectOverlay)
+        {
+            <UploadSelectOverlay OnClose="HideUploadSelectOverlay" OnMarkerTypeSelected="HandleMarkerTypeSelected" />
+        }
+
+        @if (showUploadServiceOverlay)
+        {
+            <ServiceUploadOverlay OnClose="HideServiceUploadOverlay" Latitude="@newMarkerLatitude" Longitude="@newMarkerLongitude" />
         }
 
         <div class="mt-3">

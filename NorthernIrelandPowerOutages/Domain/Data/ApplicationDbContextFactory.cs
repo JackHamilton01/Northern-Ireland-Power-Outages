@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,11 +17,10 @@ namespace Domain.Data
     {
         public ApplicationDbContext CreateDbContext(string[] args)
         {
-            // Load appsettings.json from the startup project directory
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory) // Works in design-time context
-                .AddJsonFile("appsettings.json", optional: true) // Optional fallback
-                .AddUserSecrets<ApplicationDbContextFactory>() // 👈 Loads secrets
+                .SetBasePath(AppContext.BaseDirectory) 
+                .AddJsonFile("appsettings.json", optional: true)
+                .AddUserSecrets<ApplicationDbContextFactory>() 
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();

@@ -30,6 +30,7 @@ namespace DataAccess
             app.AddRootEndpoints();
             app.AddErrorEndpoints();
             app.AddhazardEndpoints();
+            app.AddServiceEndpoints();
             app.AddAddressEndpoints();
 
             app.Run();

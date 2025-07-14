@@ -2,7 +2,6 @@ using Domain.Frontend;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using NorthernIrelandPowerOutages.Models;
-using static System.Net.WebRequestMethods;
 
 namespace NorthernIrelandPowerOutages.Components.Overlays
 {

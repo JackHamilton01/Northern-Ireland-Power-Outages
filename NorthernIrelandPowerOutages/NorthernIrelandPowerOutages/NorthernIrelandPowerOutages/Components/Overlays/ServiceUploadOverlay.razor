@@ -1,0 +1,74 @@
+﻿@using Domain.Backend
+@using Domain.Frontend
+@using Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@inject ApplicationDbContext DbContext
+
+<div class="overlay">
+    <div class="overlay-content">
+        <EditForm Model="@serviceInput" OnValidSubmit="SaveService" FormName="serviceForm">
+            <div>
+                <label for="name">Name</label>
+                <input id="name" class="form-control" @bind-value="serviceInput.Name" />
+            </div>
+            <div>
+                <label for="description">Description</label>
+                <input id="description" class="form-control" @bind-value="serviceInput.Description" />
+            </div>
+
+            <button class="btn btn-primary mt-3" type="submit">Save</button>
+        </EditForm>
+
+        <button @onclick="CloseOverlay">Close</button>
+    </div>
+</div>
+
+<style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .overlay-content {
+        background-color: white;
+        padding: 2rem;
+        border-radius: 8px;
+    }
+</style>
+
+
+@code {
+    private ServiceUI serviceInput = new();
+    private void CloseOverlay() => OnClose.InvokeAsync();
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public double Latitude { get; set; }
+
+    [Parameter]
+    public double Longitude { get; set; }
+
+    private void SaveService(EditContext args)
+    {
+        DbContext.Services.Add(new Service
+        {
+            Name = serviceInput.Name,
+            Description = serviceInput.Description,
+            Latitude = Latitude,
+            Longitude = Longitude
+        });
+
+        DbContext.SaveChanges();
+        OnClose.InvokeAsync();
+    }
+}

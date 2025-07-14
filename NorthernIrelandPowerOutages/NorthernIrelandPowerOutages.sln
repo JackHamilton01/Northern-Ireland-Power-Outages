@@ -3,10 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NorthernIrelandPowerOutages", "NorthernIrelandPowerOutages\NorthernIrelandPowerOutages\NorthernIrelandPowerOutages.csproj", "{93A6BF75-8802-48B5-B000-90185184363B}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NorthernIrelandPowerOutages.Client", "NorthernIrelandPowerOutages\NorthernIrelandPowerOutages.Client\NorthernIrelandPowerOutages.Client.csproj", "{64406DC5-05A7-4A7E-8F79-67FD47847BC9}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "APIs", "APIs", "{DFC7A837-5376-45F3-B34B-1D126EA26F11}"
@@ -17,21 +13,25 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailService", "Services\Em
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmsService", "Services\SmsService\SmsService.csproj", "{DECDEE8C-8546-4157-A37B-E3C920F7A474}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaultsAPI", "APIs\FaultsAPI\FaultsAPI.csproj", "{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LocationService", "Services\LocationService\LocationService.csproj", "{2209317D-985D-46BF-B063-6FEE0C661D1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AddressService", "Services\AddressService\AddressService.csproj", "{274B546D-0E22-4B16-BA92-6D8696EB7D4E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{6F26241C-2196-4F8F-8552-8692D3E30950}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeocodeService", "Services\GeocodeService\GeocodeService.csproj", "{51157C45-4E42-47D1-B099-A3256D1B57C9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HazardVerifyService", "Services\HazardVerifyService\HazardVerifyService.csproj", "{B466CEBA-EDA1-42AE-A00B-A492F2527414}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "Apis\DataAccess\DataAccess.csproj", "{0190D312-EC8F-4870-9DBB-989AE26AD1DA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaultPredictionService", "Services\FaultPredictionService\FaultPredictionService.csproj", "{F630151B-9CFD-4377-BF24-F4B324DEF7C4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "APIs\DataAccess\DataAccess.csproj", "{F3F08AA2-D256-2F43-F279-F574159F8AF9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaultsAPI", "APIs\FaultsAPI\FaultsAPI.csproj", "{B1213021-344C-A1CA-4740-316868C1B7B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NorthernIrelandPowerOutages", "NorthernIrelandPowerOutages\NorthernIrelandPowerOutages\NorthernIrelandPowerOutages.csproj", "{3CE44D43-663E-3922-FF8D-BDB8654150B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NorthernIrelandPowerOutages.Client", "NorthernIrelandPowerOutages\NorthernIrelandPowerOutages.Client\NorthernIrelandPowerOutages.Client.csproj", "{C3A000EF-5BAA-3FF4-6CD1-C70EA5887BE0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Domain\Domain.csproj", "{6B128D18-04DF-4E31-92DA-DB26A201D0C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,14 +39,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{93A6BF75-8802-48B5-B000-90185184363B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{93A6BF75-8802-48B5-B000-90185184363B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{93A6BF75-8802-48B5-B000-90185184363B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{93A6BF75-8802-48B5-B000-90185184363B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{64406DC5-05A7-4A7E-8F79-67FD47847BC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{64406DC5-05A7-4A7E-8F79-67FD47847BC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{64406DC5-05A7-4A7E-8F79-67FD47847BC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{64406DC5-05A7-4A7E-8F79-67FD47847BC9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4CB286FB-5090-4D45-897E-7C785371CA9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4CB286FB-5090-4D45-897E-7C785371CA9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4CB286FB-5090-4D45-897E-7C785371CA9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -59,10 +51,6 @@ Global
 		{DECDEE8C-8546-4157-A37B-E3C920F7A474}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DECDEE8C-8546-4157-A37B-E3C920F7A474}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DECDEE8C-8546-4157-A37B-E3C920F7A474}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2209317D-985D-46BF-B063-6FEE0C661D1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2209317D-985D-46BF-B063-6FEE0C661D1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2209317D-985D-46BF-B063-6FEE0C661D1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -71,10 +59,6 @@ Global
 		{274B546D-0E22-4B16-BA92-6D8696EB7D4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{274B546D-0E22-4B16-BA92-6D8696EB7D4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{274B546D-0E22-4B16-BA92-6D8696EB7D4E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6F26241C-2196-4F8F-8552-8692D3E30950}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6F26241C-2196-4F8F-8552-8692D3E30950}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6F26241C-2196-4F8F-8552-8692D3E30950}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6F26241C-2196-4F8F-8552-8692D3E30950}.Release|Any CPU.Build.0 = Release|Any CPU
 		{51157C45-4E42-47D1-B099-A3256D1B57C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{51157C45-4E42-47D1-B099-A3256D1B57C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51157C45-4E42-47D1-B099-A3256D1B57C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -83,14 +67,30 @@ Global
 		{B466CEBA-EDA1-42AE-A00B-A492F2527414}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B466CEBA-EDA1-42AE-A00B-A492F2527414}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B466CEBA-EDA1-42AE-A00B-A492F2527414}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0190D312-EC8F-4870-9DBB-989AE26AD1DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0190D312-EC8F-4870-9DBB-989AE26AD1DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0190D312-EC8F-4870-9DBB-989AE26AD1DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0190D312-EC8F-4870-9DBB-989AE26AD1DA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F630151B-9CFD-4377-BF24-F4B324DEF7C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F630151B-9CFD-4377-BF24-F4B324DEF7C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F630151B-9CFD-4377-BF24-F4B324DEF7C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F630151B-9CFD-4377-BF24-F4B324DEF7C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3F08AA2-D256-2F43-F279-F574159F8AF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3F08AA2-D256-2F43-F279-F574159F8AF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3F08AA2-D256-2F43-F279-F574159F8AF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3F08AA2-D256-2F43-F279-F574159F8AF9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1213021-344C-A1CA-4740-316868C1B7B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1213021-344C-A1CA-4740-316868C1B7B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1213021-344C-A1CA-4740-316868C1B7B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1213021-344C-A1CA-4740-316868C1B7B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3CE44D43-663E-3922-FF8D-BDB8654150B7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3CE44D43-663E-3922-FF8D-BDB8654150B7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3CE44D43-663E-3922-FF8D-BDB8654150B7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3CE44D43-663E-3922-FF8D-BDB8654150B7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3A000EF-5BAA-3FF4-6CD1-C70EA5887BE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3A000EF-5BAA-3FF4-6CD1-C70EA5887BE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3A000EF-5BAA-3FF4-6CD1-C70EA5887BE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3A000EF-5BAA-3FF4-6CD1-C70EA5887BE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B128D18-04DF-4E31-92DA-DB26A201D0C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B128D18-04DF-4E31-92DA-DB26A201D0C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B128D18-04DF-4E31-92DA-DB26A201D0C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B128D18-04DF-4E31-92DA-DB26A201D0C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -98,13 +98,13 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{BB868CD2-F6CB-4C40-B2EB-FC6B678AD5F1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{DECDEE8C-8546-4157-A37B-E3C920F7A474} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{6FF19FD0-8857-4C1C-A9A8-5CA8A1997417} = {DFC7A837-5376-45F3-B34B-1D126EA26F11}
 		{2209317D-985D-46BF-B063-6FEE0C661D1A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{274B546D-0E22-4B16-BA92-6D8696EB7D4E} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{51157C45-4E42-47D1-B099-A3256D1B57C9} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{B466CEBA-EDA1-42AE-A00B-A492F2527414} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{0190D312-EC8F-4870-9DBB-989AE26AD1DA} = {DFC7A837-5376-45F3-B34B-1D126EA26F11}
 		{F630151B-9CFD-4377-BF24-F4B324DEF7C4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{F3F08AA2-D256-2F43-F279-F574159F8AF9} = {DFC7A837-5376-45F3-B34B-1D126EA26F11}
+		{B1213021-344C-A1CA-4740-316868C1B7B2} = {DFC7A837-5376-45F3-B34B-1D126EA26F11}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FDDC4DA4-09FA-4507-AC31-00362C08BB7D}
