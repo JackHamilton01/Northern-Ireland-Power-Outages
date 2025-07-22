@@ -14,6 +14,7 @@ namespace DataAccess.Endpoints
             app.MapGet("/address/{id:int}", LoadAddressesByIdAsync);
             app.MapGet("/address/{userId}/addresses", LoadAddressesAsync);
             app.MapPost("/address/match", FindMatchingAddressAsync);
+            app.MapPost("/address/update-address-alerts", UpdateAddressAlerts);
         }
 
         private static async Task<IResult> LoadAddressesByIdAsync(HttpContext context, int id)
@@ -34,16 +35,18 @@ namespace DataAccess.Endpoints
         {
             ApplicationDbContext? dbContext  = context.RequestServices.GetRequiredService<ApplicationDbContext>();
 
-            var user = await dbContext.Users
-                .Include(u => u.FavoriteAddresses)
-                .FirstAsync(u => u.Id == userId);
+            var favouriteAddressEntities = await dbContext.Users
+                .Where(u => u.Id == userId)
+                .SelectMany(u => u.FavouriteAddressPreferences) 
+                .Select(uap => uap.Address) 
+                .ToListAsync();
 
-            if (user is null)
+            if (favouriteAddressEntities is null)
             {
                 return Results.NotFound();
             }
 
-            return Results.Ok(user.FavoriteAddresses.Select(a => (AddressUI)a).ToList());
+            return Results.Ok(favouriteAddressEntities);
         }
 
         private static async Task<IResult> FindMatchingAddressAsync(HttpContext context, AddressUI inputAddress)
@@ -66,9 +69,41 @@ namespace DataAccess.Endpoints
 
             if (candidates.Count == 0)
             {
-                return Results.Ok(inputAddress);
+                return Results.Ok(null);
             }
             return Results.Ok((AddressUI)candidates.FirstOrDefault(a => AddressEquals(inputAddress, a)));
+        }
+
+        private static async Task<IResult> UpdateAddressAlerts(
+            HttpContext context,
+            string userId,
+            int addressId,
+            bool sendSmsAlerts,
+            bool sendEmailAlerts)
+        {
+            ApplicationDbContext? dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+
+            FavouriteAddressPreferences? favouriteAddressPreference = await dbContext.FavouriteAddressPreferences
+                .Where(a => a.ApplicationUserId == userId && a.AddressId == addressId)
+                .FirstOrDefaultAsync();
+
+            if (favouriteAddressPreference is null)
+            {
+                favouriteAddressPreference = new FavouriteAddressPreferences()
+                {
+                    AddressId = addressId,
+                    ApplicationUserId = userId,
+                    EmailAlertsEnabled = sendEmailAlerts,
+                    SmsAlertsEnabled = sendSmsAlerts,
+                };
+            }
+
+            favouriteAddressPreference.EmailAlertsEnabled = sendEmailAlerts;
+            favouriteAddressPreference.SmsAlertsEnabled = sendSmsAlerts;
+
+            await dbContext.SaveChangesAsync();
+
+            return Results.Ok("Preferences have been saved successfuly");
         }
 
         private static bool AddressEquals(Address firstAddress, Address secondAddress)

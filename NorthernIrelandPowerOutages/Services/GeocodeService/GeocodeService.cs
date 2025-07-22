@@ -64,5 +64,27 @@ namespace GeocodeService
                 .Where(addr => !string.IsNullOrEmpty(addr))
                 .ToList();
         }
+
+        public async Task<GoogleGeocodeResponse> GetAddressFromLatLng(double latitude, double longitude)
+        {
+            var apiKey = settings.ApiKey;
+            var url = $"https://maps.googleapis.com/maps/api/geocode/json?latlng={latitude},{longitude}&key={apiKey}";
+
+            using var httpClient = new HttpClient();
+            var response = await httpClient.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return null;
+            }
+
+            JsonSerializerOptions options = new()
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<GoogleGeocodeResponse>(json, options);
+        }
     }
 }

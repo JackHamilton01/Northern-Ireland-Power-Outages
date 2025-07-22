@@ -1,0 +1,287 @@
+﻿@page "/account/account-information"
+@using Domain.Backend
+@using Domain.Frontend
+@using Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@using NorthernIrelandPowerOutages.Models
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ApplicationDbContext DbContext
+@inject AddressService.IAddressService AddressService
+@inject GeocodeService.IGeocodeService GeocodeService
+@rendermode InteractiveServer
+
+@* <EditForm Model="@addressInput" OnValidSubmit="SaveAddress" FormName="addressForm">
+    <div class="mb-3">
+        <label for="StreetNumber" class="form-label">Street Number:</label>
+        <InputNumber Id="StreetNumber" @bind-Value="@addressInput.StreetNumber" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label for="StreetName" class="form-label">Street Name:</label>
+        <InputText Id="StreetName" @bind-Value="@addressInput.StreetName" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label for="BuildingDetails" class="form-label">Building Details:</label>
+        <InputText Id="BuildingDetails" @bind-Value="@addressInput.BuildingDetails" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label for="City" class="form-label">City:</label>
+        <InputText Id="City" @bind-Value="@addressInput.City" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label for="County" class="form-label">County:</label>
+        <InputText Id="County" @bind-Value="@addressInput.County" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label for="PostCode" class="form-label">Postcode:</label>
+        <InputText Id="PostCode" @bind-Value="@addressInput.PostCode" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Address</button>
+</EditForm> *@
+@* 
+<hr class="my-4">
+<h4 class="mt-5 mb-3 text-center">Saved Addresses</h4>
+
+@if (addresses.Count == 0)
+{
+    <p class="alert alert-info text-center">No addresses found.</p>
+}
+else
+{
+    <ul class="list-group">
+        @foreach (var a in addresses)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@($"{a.StreetNumber} {a.StreetName}, {a.City}, {a.County}, {a.PostCode}")</span>
+                <button @onclick="() => DeleteAddress(a.Id)" class="btn btn-danger btn-sm">Delete</button>
+            </li>
+        }
+    </ul>
+} *@
+
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <div class="card bg-secondary text-white border-0 rounded-bottom-0">
+                <div class="card-body">
+                    <h2 class="card-title mb-1">Jack Hamilton</h2>
+                    <p class="card-text text-white-50">Last login: July 16, 2025</p>
+                </div>
+            </div>
+
+            <div class="card mb-4 rounded-top-0 border-top-0">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Profile Details</h4>
+                    <button class="btn btn-secondary btn-sm">Manage account</button>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold text-muted">Name</div>
+                        <div class="col-sm-8">Jack Hamilton</div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-sm-4 fw-bold text-muted">Email</div>
+                        <div class="col-sm-8">jackhamilton2807@gmail.com</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 fw-bold text-muted">Phone number</div>
+                        <div class="col-sm-8">07787203559</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Favourite addresses</h4>
+                    <button class="btn btn-secondary btn-sm" @onclick="ManageAddresses">Manage addresses</button>
+                </div>
+                <div class="card-body">
+                    @if (addresses.Count == 0)
+                    {
+                        <p class="text-center text-muted fst-italic">No addresses found.</p>
+                    }
+                    else
+                    {
+                        @foreach (var address in addresses)
+                        {
+                            <div class="card mb-3 bg-light custom-address-card">
+                                <div class="card-body py-3">
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4 fw-bold text-dark-emphasis">Building number</div>
+                                        <div class="col-sm-8 text-dark">@address.StreetNumber</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4 fw-bold text-dark-emphasis">Address line</div>
+                                        <div class="col-sm-8 text-dark">@address.StreetName</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4 fw-bold text-dark-emphasis">City</div>
+                                        <div class="col-sm-8 text-dark">@address.City</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-4 fw-bold text-dark-emphasis">County</div>
+                                        <div class="col-sm-8 text-dark">@address.County</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4 fw-bold text-dark-emphasis">Postcode</div>
+                                        <div class="col-sm-8 text-dark">@address.PostCode</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+    [Inject]
+    private NavigationManager NavManager { get; set; }
+
+    private ApplicationUser authenticatedUser; 
+    private AddressUI addressInput = new();
+    private List<AddressUI> addresses = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var t = await GeocodeService.GetAddressesFromPostcodeAsync("BT42 1NA"); // Example
+
+        AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity?.IsAuthenticated == true)
+        {
+            string? userId = claimsPrincipal.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userId is not null)
+            {
+                authenticatedUser = DbContext.Users.First(u => u.Id == userId);
+
+                var favouriteAddressEntities = await DbContext.Users
+                    .Where(u => u.Id == userId)
+                    .SelectMany(u => u.FavouriteAddressPreferences) 
+                    .Select(uap => uap.Address) 
+                    .ToListAsync();
+
+                if (favouriteAddressEntities is not null)
+                {
+                    this.addresses.AddRange(favouriteAddressEntities.Select(a => (AddressUI)a));
+                }
+            }
+        }
+    }
+
+    private async Task SaveAddress(EditContext editContext)
+    {
+        try
+        {
+            var addressToSave = addressInput.Clone();
+
+            await SaveAddressChangesToDatabase(addressToSave);
+
+            addresses.Add(addressToSave);
+        }
+        catch (Exception)
+        {
+
+        }
+    }
+
+    private async Task SaveAddressChangesToDatabase(AddressUI addressToSave)
+    {
+        // var existingAddress = await AddressService.FindMatchingAddress(addressToSave);
+
+        // ApplicationUser user = await DbContext.Users
+        //     .Include(u => u.FavouriteAddressPreferences)
+        //     .FirstAsync(u => u.Id == authenticatedUser.Id);
+
+        // if (user.FavouriteAddressPreferences is null)
+        // {
+        //     user.FavouriteAddressPreferences = new List<FavouriteAddressPreferences>();
+        // }
+
+        // // User has already saved this address
+        // if (existingAddress is not null && user.FavouriteAddressPreferences.Contains(existingAddress))
+        // {
+        //     throw new Exception("This address has already been added to favourites");
+        // }
+
+        // Address addressToAdd;
+
+        // if (existingAddress is null)
+        // {
+        //     addressToAdd = addressToSave;
+        // }
+        // else
+        // {
+        //     addressToAdd = existingAddress;
+        // }
+
+        // if (!user.FavoriteAddresses.Any(a => a.Id == addressToAdd.Id))
+        // {
+        //     var geopoint = await GeocodeService.GetLatLongFromAddressAsync(addressToSave.ToString());
+
+        //     if (geopoint is null)
+        //     {
+        //         throw new Exception("Invalid address provided");
+        //     }
+
+        //     Address backendAddress = addressToAdd;
+        //     backendAddress.Latitude = geopoint.Latitude;
+        //     backendAddress.Longitude = geopoint.Longitude;
+
+        //     user.FavoriteAddresses.Add(backendAddress);
+        // }
+
+        // await DbContext.SaveChangesAsync();
+    }
+
+    private async Task DeleteAddress(int id)
+    {
+        await DeleteAddressFromDatabase(id);
+        await DeleteUnusedAddressesFromDatabase();
+
+        var addressToDelete = addresses.FirstOrDefault(a => a.Id == id);
+        if (addressToDelete != null)
+        {
+            addresses.Remove(addressToDelete);
+        }
+    }
+
+    private async Task DeleteAddressFromDatabase(int addressId)
+    {
+        ApplicationUser user = await DbContext.Users
+            .Include(u => u.FavouriteAddressPreferences)
+            .FirstAsync(u => u.Id == authenticatedUser.Id);
+
+        var address = user.FavouriteAddressPreferences.FirstOrDefault(f => f.AddressId == addressId);
+        if (address != null)
+        {
+            user.FavouriteAddressPreferences.Remove(address);
+            await DbContext.SaveChangesAsync();
+        }
+    }
+
+    private async Task DeleteUnusedAddressesFromDatabase()
+    {
+        var unusedAddresses = await DbContext.Addresses
+            .Where(a => !a.FavouriteAddressPreferences.Any())
+            .ToListAsync();
+
+        DbContext.Addresses.RemoveRange(unusedAddresses);
+        await DbContext.SaveChangesAsync();
+    }
+
+    private void ManageAddresses()
+    {
+        NavManager.NavigateTo("/address-management");
+    }
+}

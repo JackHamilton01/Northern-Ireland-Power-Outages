@@ -1,6 +1,7 @@
 ﻿using Domain.Backend;
 using Domain.Frontend;
 using FaultPredictionService;
+using FaultsAPI.Data;
 using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -34,13 +35,14 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private GoogleMapPin? googleMapPin;
         private CountyMatcher countyMatcher;
         private GoogleMapPin? homePin;
-        private FaultPredictionAPI faultPredictionAPI;
 
         private bool showUploadHazardOverlay = false;
         private bool showHazardViewOverlay = false;
         private bool showMultiplePinOverlay = false;
         private bool showUploadSelectOverlay = false;
         private bool showUploadServiceOverlay = false;
+        private OutageMessage? selectedFault;
+        private bool showFaultOverlay = false;
         private List<GoogleMapPin>? childPins;
 
         private double newMarkerLatitude;
@@ -64,7 +66,6 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         protected async override Task OnInitializedAsync()
         {
             countyMatcher = await CountyMatcher.Create();
-            faultPredictionAPI = new (Http);
 
             mapInitialised = true;
         }
@@ -88,7 +89,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
                     markers.Add(new GoogleMapPin()
                     {
-                        Name = outageMessage.PostCode,
+                        Name = outageMessage.OutageId,
                         StatusMessage = outageMessage.StatusMessage,
                         Latitude = latitude,
                         Longitude = longitude,
@@ -144,7 +145,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         {
             try
             {
-                List<PredictionUI>? predictions = await faultPredictionAPI.GetFaultPredictions();
+                List<PredictionUI>? predictions = await faultPrediction.GetFaultPredictions();
 
                 if (predictions is not null)
                 {
@@ -245,8 +246,6 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                 module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
                 await module.InvokeVoidAsync("setBlazorComponentReference", dotNetObjectReference);
 
-                Debug.WriteLine("---");
-                Debug.WriteLine("Subscribed");
                 FaultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
                 await FaultPollingService.StartAsync();
                 return;
@@ -347,15 +346,36 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         [JSInvokable]
         public async Task OnMarkerClicked(GoogleMapPin googleMapPin)
         {
-            this.googleMapPin = googleMapPin;
-            await ShowOverlay(googleMapPin);
+            try
+            {
+                this.googleMapPin = googleMapPin;
+                await ShowOverlay(googleMapPin);
 
-            StateHasChanged();
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                
+            }
         }
 
         private async Task ShowOverlay(GoogleMapPin googleMapPin)
         {
-            if (googleMapPin.MarkerType == MarkerType.Multiple)
+            if (googleMapPin is null)
+            {
+                CloseModal();
+                return;
+            }
+
+            if (googleMapPin.MarkerType == MarkerType.Fault)
+            {
+                var outageId = googleMapPin.Name;
+                selectedFault = await Http.GetFromJsonAsync<OutageMessage>($"https://localhost:7125/faults/{outageId}");
+
+                showFaultOverlay = true;
+
+            }
+            else if (googleMapPin.MarkerType == MarkerType.Multiple)
             {
                 showMultiplePinOverlay = true;
                 childPins = googleMapPin.ChildPins;
@@ -479,6 +499,12 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private void HideServiceUploadOverlay()
         {
             showUploadServiceOverlay = false;
+        }
+
+        private void HideFaultOverlay()
+        {
+            showFaultOverlay = false;
+            selectedFault = null;
         }
 
         private async Task OnSearchResultSuccess(Tuple<double, double> geopoint)

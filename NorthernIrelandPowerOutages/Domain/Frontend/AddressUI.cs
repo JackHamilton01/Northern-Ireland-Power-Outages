@@ -5,7 +5,7 @@ namespace Domain.Frontend
     public class AddressUI
     {
         public int Id { get; set; }
-        public int StreetNumber { get; set; }
+        public string StreetNumber { get; set; }
         public string StreetName { get; set; }
         public string? BuildingDetails { get; set; }
         public string City { get; set; }
@@ -13,6 +13,8 @@ namespace Domain.Frontend
         public string PostCode { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
+        public bool EmailAlertsEnabled { get; set; }
+        public bool SmsAlertsEnabled { get; set; }
 
         public AddressUI Clone()
         {
@@ -50,7 +52,8 @@ namespace Domain.Frontend
         {
             var parts = new List<string>();
 
-            if (StreetNumber > 0 && !string.IsNullOrWhiteSpace(StreetName))
+            if (!string.IsNullOrWhiteSpace(StreetNumber) && 
+                !string.IsNullOrWhiteSpace(StreetName))
             {
                 parts.Add($"{StreetNumber} {StreetName}");
             }

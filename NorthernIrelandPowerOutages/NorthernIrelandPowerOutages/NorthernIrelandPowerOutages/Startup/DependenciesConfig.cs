@@ -1,5 +1,6 @@
 ﻿using AddressService;
 using EmailService;
+using FaultPredictionService;
 using GeocodeService;
 using HazardVerifyService;
 using Infrastructure.Data;
@@ -9,6 +10,7 @@ using Infrastructure.Sms;
 using LocationService;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using NorthernIrelandPowerOutages.Components.Account;
 using NorthernIrelandPowerOutages.Services;
 using SmsService;
@@ -29,10 +31,8 @@ namespace NorthernIrelandPowerOutages.Startup
             builder.Services.AddScoped<IEmailSender, EmailSender>();
             builder.Services.AddScoped<IDeviceLocationService, DeviceLocationService>();
 
-            builder.Services.AddHttpClient<IAddressService, AddressService.AddressService>(client =>
-            {
-            });
-
+            builder.Services.AddHttpClient<IFaultPrediction, FaultPrediction>();
+            builder.Services.AddHttpClient<IAddressService, AddressService.AddressService>();
 
             builder.Services.AddScoped<IGeocodeService, GeocodeService.GeocodeService>();
 

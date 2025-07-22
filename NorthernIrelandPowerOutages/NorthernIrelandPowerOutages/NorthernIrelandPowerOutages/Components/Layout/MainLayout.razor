@@ -1,9 +1,11 @@
 ﻿@inherits LayoutComponentBase
 
+@inject NavigationManager NavigationManager
+
 <div class="page">
-    <div class="sidebar">
+ @*    <div class="sidebar">
         <NavMenu />
-    </div>
+    </div> *@
 
     <main>
         <div class="top-row px-4">
@@ -19,9 +21,32 @@
                     <li class="nav-item me-3">
                         <a class="nav-link" href="/search">Details</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/account/edit">You</a>
-                    </li>
+                    <AuthorizeView>
+                        <Authorized>
+                            <li class="nav-item me-3">
+                                <a class="nav-link" href="/account/account-information">@context.User.Identity?.Name</a>
+                            </li>
+                            <form action="Account/Logout" method="post">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                <button type="submit" class="nav-link">
+                                    <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                                </button>
+                            </form>
+                        </Authorized>
+                        <NotAuthorized>
+                            <div class="nav-item px-3">
+                                <NavLink class="nav-link" href="Account/Register">
+                                    <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                                </NavLink>
+                            </div>
+                            <div class="nav-item px-3">
+                                <NavLink class="nav-link" href="Account/Login">
+                                    <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                                </NavLink>
+                            </div>
+                        </NotAuthorized>
+                    </AuthorizeView>
                 </ul>
             </nav>
         </div>
@@ -37,3 +62,14 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private string currentUrl;
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.Uri;
+    }
+    protected override void OnAfterRender(bool firstRender)
+    {
+    }
+}

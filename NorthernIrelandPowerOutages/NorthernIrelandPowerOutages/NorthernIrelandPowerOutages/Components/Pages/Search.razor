@@ -1,89 +1,72 @@
 ﻿@page "/Search"
+@using GeocodeService
+@using Infrastructure.Data
 @using NorthernIrelandPowerOutages.Models
 @using NorthernIrelandPowerOutages.Services
 @inject IFaultPollingService FaultPollingService
 @inject HttpClient httpClient
 @rendermode InteractiveServer
+@inject IGeocodeService GeocodeService
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpClient Http
 
 <h3>Search</h3>
 
+<div class="input-group mb-3">
+    <input type="text" @bind="postCode" class="form-control" placeholder="Enter postcode" aria-label="Enter postcode" />
+    <button class="btn btn-primary" @onclick="SearchByPostCode">Search</button>
+</div>
+
 @if (fault != null && fault.OutageMessage != null && fault.OutageMessage.Any())
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Property</th>
-                <th>Value</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var outages in fault.OutageMessage)
-            {
-                <tr>
-                    <td>Id</td>
-                    <td>@outages.OutageId</td>
-                </tr>
-                <tr>
-                    <td>Outage Type</td>
-                    <td>@outages.OutageType</td>
-                </tr>
-                <tr>
-                    <td>Post Code</td>
-                    <td>@outages.PostCode</td>
-                </tr>
-                <tr>
-                    <td>Status Message</td>
-                    <td>@outages.StatusMessage</td>
-                </tr>
-                <tr>
-                    <td colspan="2"><hr /></td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="container-fluid">
+        @foreach (var outage in fault.OutageMessage)
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-3">
+                                    <h5 class="card-title text-primary mb-0">ID: @outage.OutageId</h5>
+                                </div>
+                                <div class="col-md-3">
+                                    <h6 class="card-subtitle text-muted mb-0">Type: @outage.OutageType</h6>
+                                </div>
+                                <div class="col-md-2">
+                                    <p class="card-text mb-0">Post Code: @outage.PostCode</p>
+                                </div>
+                                <div class="col-md-3">
+                                    @* Adjusted column size slightly to accommodate button *@
+                                    <p class="card-text mb-0">Status: @outage.StatusMessage</p>
+                                </div>
+                                <div class="col-md-1 text-end">
+                                    @* Column for the heart button, aligned to the end *@
+                                    <button class="btn btn-outline-danger btn-sm"
+                                            @onclick='() => ToggleFavorite(outage)'
+                                            aria-label="Toggle Favorite">
+                                        <i class="bi bi-heart"></i> @* Bootstrap Heart Icon *@
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 }
 else
 {
-    <p>No fault data available yet.</p>
+    <div class="alert alert-info" role="alert">
+        No fault data available yet. Please enter a postcode and search.
+    </div>
 }
 
-<input @bind="postCode" placeholder="Enter postcode" />
-<button @onclick="SearchByPostCode">Search</button>
-
-<p>@faultInfo</p>
-
-@code
+@if (!string.IsNullOrEmpty(faultInfo))
 {
-    private FaultModel? fault;
-    private string? postCode;
-    private string? faultInfo;
-
-    protected override void OnInitialized()
-    {
-        FaultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
-        fault = FaultPollingService.CurrentFault; 
-    }
-
-    private async void FaultPollingService_OnFaultsUpdated(FaultModel? fault, bool isFirstPoll)
-    {
-        this.fault = fault;
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    public async Task SearchByPostCode()
-    {
-        FaultModel response = await httpClient.GetFromJsonAsync<FaultModel>($"https://localhost:7125/faults?postCode={postCode}");
-
-        if (response is null)
-        {
-            return;
-        }
-
-        var id = (response.OutageMessage.First()).OutageId;
-        var postCodeReceived = (response.OutageMessage.First()).PostCode;
-        var estRestoreTime = (response.OutageMessage.First()).EstRestoreTime;
-
-        faultInfo = $"Fault ID: {id}, Post Code: {postCodeReceived}, Estimated Restore Time: {estRestoreTime}";
-    }
+    <div class="alert alert-warning mt-3" role="alert">
+        @faultInfo
+    </div>
 }

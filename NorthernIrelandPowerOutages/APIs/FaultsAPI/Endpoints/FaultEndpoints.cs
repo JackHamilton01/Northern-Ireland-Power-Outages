@@ -9,7 +9,7 @@ namespace FaultsAPI.Endpoints
         public static void AddFaultEndpoints(this WebApplication app)
         {
             app.MapGet("/faults", LoadAllFaultsAsync);
-            app.MapGet("/faults/{incidentReference}", LoadFaultByIncidentReferenceAsync);
+            app.MapGet("/faults/{outageId}", LoadFaultByIncidentReferenceAsync);
         }
 
         private static async Task<IResult> LoadAllFaultsAsync(FaultData data, string? outageType, string? postCode, int? delay)

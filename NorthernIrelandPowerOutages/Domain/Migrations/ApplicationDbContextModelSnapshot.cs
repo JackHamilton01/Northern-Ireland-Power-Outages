@@ -22,21 +22,6 @@ namespace Domain.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("AddressApplicationUser", b =>
-                {
-                    b.Property<int>("FavoriteAddressesId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("UsersId")
-                        .HasColumnType("text");
-
-                    b.HasKey("FavoriteAddressesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("AddressApplicationUser");
-                });
-
             modelBuilder.Entity("Domain.Backend.Address", b =>
                 {
                     b.Property<int>("Id")
@@ -70,8 +55,9 @@ namespace Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("StreetNumber")
-                        .HasColumnType("integer");
+                    b.Property<string>("StreetNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -142,6 +128,27 @@ namespace Domain.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Backend.FavouriteAddressPreferences", b =>
+                {
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
+                    b.Property<int>("AddressId")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("EmailAlertsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("SmsAlertsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("ApplicationUserId", "AddressId");
+
+                    b.HasIndex("AddressId");
+
+                    b.ToTable("FavouriteAddressPreferences");
+                });
+
             modelBuilder.Entity("Domain.Backend.Hazard", b =>
                 {
                     b.Property<int>("Id")
@@ -204,8 +211,8 @@ namespace Domain.Migrations
                     b.Property<double>("Longitude")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("Outage")
-                        .HasColumnType("integer");
+                    b.Property<bool>("Outage")
+                        .HasColumnType("boolean");
 
                     b.Property<float>("Rain")
                         .HasColumnType("real");
@@ -249,6 +256,35 @@ namespace Domain.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("Domain.Backend.Settings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Settings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "LastPredictionTrainedTimestamp",
+                            Value = ""
+                        });
                 });
 
             modelBuilder.Entity("Domain.OutagePredictionModel", b =>
@@ -403,19 +439,23 @@ namespace Domain.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("AddressApplicationUser", b =>
+            modelBuilder.Entity("Domain.Backend.FavouriteAddressPreferences", b =>
                 {
-                    b.HasOne("Domain.Backend.Address", null)
-                        .WithMany()
-                        .HasForeignKey("FavoriteAddressesId")
+                    b.HasOne("Domain.Backend.Address", "Address")
+                        .WithMany("FavouriteAddressPreferences")
+                        .HasForeignKey("AddressId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Backend.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
+                    b.HasOne("Domain.Backend.ApplicationUser", "ApplicationUser")
+                        .WithMany("FavouriteAddressPreferences")
+                        .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Address");
+
+                    b.Navigation("ApplicationUser");
                 });
 
             modelBuilder.Entity("Domain.Backend.HazardImage", b =>
@@ -474,6 +514,16 @@ namespace Domain.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Domain.Backend.Address", b =>
+                {
+                    b.Navigation("FavouriteAddressPreferences");
+                });
+
+            modelBuilder.Entity("Domain.Backend.ApplicationUser", b =>
+                {
+                    b.Navigation("FavouriteAddressPreferences");
                 });
 
             modelBuilder.Entity("Domain.Backend.Hazard", b =>

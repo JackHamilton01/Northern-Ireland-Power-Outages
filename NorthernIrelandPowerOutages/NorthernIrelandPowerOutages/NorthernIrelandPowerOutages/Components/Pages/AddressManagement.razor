@@ -1,0 +1,214 @@
+﻿@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject ApplicationDbContext DbContext;
+@inject HttpClient Http;
+
+@page "/address-management"
+@using Domain.Backend
+@using Domain.Frontend
+@using System.Security.Claims
+@using Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="mb-0">Your Favourite Addresses</h3>
+                <button class="btn btn-outline-secondary btn-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                    </svg>
+                    Back to Profile
+                </button>
+            </div>
+
+            @if (addresses == null)
+            {
+                <p class="text-center text-muted">Loading addresses...</p>
+            }
+            else if (addresses.Count == 0)
+            {
+                <div class="alert alert-info text-center" role="alert">
+                    No favourite addresses found.
+                </div>
+            }
+            else
+            {
+                @foreach (var address in addresses)
+                {
+                    <div class="card mb-4 shadow-sm custom-address-display-card">
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold text-muted">Building number</div>
+                                        <div class="col-sm-7">@address.StreetNumber</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold text-muted">Address line</div>
+                                        <div class="col-sm-7">@address.StreetName</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold text-muted">City</div>
+                                        <div class="col-sm-7">@address.City</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold text-muted">County</div>
+                                        <div class="col-sm-7">@address.County</div>
+                                    </div>
+                                    <div class="row mb-2">
+                                        <div class="col-sm-5 fw-bold text-muted">Postcode</div>
+                                        <div class="col-sm-7">@address.PostCode</div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-5 fw-bold text-muted">Building Details</div>
+                                        <div class="col-sm-7">@(string.IsNullOrWhiteSpace(address.BuildingDetails) ? "N/A" : address.BuildingDetails)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-3">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="emailAlerts_@address.Id"
+                                           @onchange="(e) => ToggleEmailAlerts(address.Id, (bool)e.Value)">
+                                    <label class="form-check-label" for="emailAlerts_@address.Id">Email alerts</label>
+                                </div>
+
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="smsAlerts_@address.Id"
+                                           @onchange="() => ToggleSmsAlerts(address.Id, address.SmsAlertsEnabled)">
+                                    <label class="form-check-label" for="smsAlerts_@address.Id">SMS alerts</label>
+                                </div>
+
+                                <button class="btn btn-danger btn-sm ms-auto" @onclick="() => DeleteAddress(address.Id)">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
+                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H9.5a1 1 0 0 1 1 1v1H14a1 1 0 0 1 1 1v1zM2.5 3V2h11v1h-11z"/>
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<AddressUI> addresses = new();
+    private ApplicationUser? authenticatedUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // var t = await GeocodeService.GetAddressesFromPostcodeAsync("BT42 1NA"); // Example
+
+        AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity?.IsAuthenticated == true)
+        {
+            string? userId = claimsPrincipal.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userId is not null)
+            {
+                authenticatedUser = DbContext.Users.First(u => u.Id == userId);
+
+                var favouriteAddressEntities = await DbContext.Users
+                    .Where(u => u.Id == userId)
+                    .SelectMany(u => u.FavouriteAddressPreferences)
+                    .Select(uap => uap.Address)
+                    .ToListAsync();
+
+                if (favouriteAddressEntities is not null)
+                {
+                    this.addresses.AddRange(favouriteAddressEntities.Select(a => (AddressUI)a));
+                }
+            }
+        }
+    }
+
+    private void DeleteAddress(int id)
+    {
+        var addressToRemove = addresses.FirstOrDefault(a => a.Id == id);
+        if (addressToRemove != null)
+        {
+            addresses.Remove(addressToRemove);
+        }
+    }
+
+    private async Task ToggleEmailAlerts(int addressId, bool currentValue)
+    {
+        var address = addresses.Where(f => f.Id == addressId).FirstOrDefault();
+        address.EmailAlertsEnabled = currentValue;
+
+        var requestBody = new
+        {
+            userId = authenticatedUser?.Id,
+            addressId = addressId,
+            sendSmsAlerts = address.SmsAlertsEnabled,
+            sendEmailAlerts = currentValue,
+        };
+
+        HttpResponseMessage? response = await Http.PostAsJsonAsync("https://localhost:7228/address/update-address-alerts", requestBody);
+
+        if (response.IsSuccessStatusCode)
+        {
+            
+        }
+
+        // if (string.IsNullOrEmpty(currentUserId))
+        // {
+        //     Console.WriteLine("Error: Current user ID not set. Cannot toggle alerts.");
+        //     return;
+        // }
+
+        // var updateDto = new UpdatePreferenceDto { EmailAlertsEnabled = currentValue };
+        // try
+        // {
+        //     var response = await Http.PutAsJsonAsync($"api/users/{currentUserId}/favourite-addresses/{addressId}/preferences", updateDto);
+        //     response.EnsureSuccessStatusCode();
+        //     Console.WriteLine($"Address {addressId} Email Alerts Toggled to: {currentValue}");
+        // }
+        // catch (HttpRequestException ex)
+        // {
+        //     Console.WriteLine($"Error toggling email alerts: {ex.Message}");
+        //     // Revert UI state if API call fails (optional, but good UX)
+        //     var address = favouriteAddresses.FirstOrDefault(a => a.AddressId == addressId);
+        //     if (address != null) address.EmailAlertsEnabled = !currentValue;
+        // }
+    }
+
+    private async Task ToggleSmsAlerts(int addressId, bool currentValue)
+    {
+        var address = addresses.Where(f => f.Id == addressId).FirstOrDefault();
+        address.SmsAlertsEnabled = currentValue;
+        // if (string.IsNullOrEmpty(currentUserId))
+        // {
+        //     Console.WriteLine("Error: Current user ID not set. Cannot toggle alerts.");
+        //     return;
+        // }
+
+        // var updateDto = new UpdatePreferenceDto { SmsAlertsEnabled = currentValue };
+        // try
+        // {
+        //     var response = await Http.PutAsJsonAsync($"api/users/{currentUserId}/favourite-addresses/{addressId}/preferences", updateDto);
+        //     response.EnsureSuccessStatusCode();
+        //     Console.WriteLine($"Address {addressId} SMS Alerts Toggled to: {currentValue}");
+        // }
+        // catch (HttpRequestException ex)
+        // {
+        //     Console.WriteLine($"Error toggling SMS alerts: {ex.Message}");
+        //     // Revert UI state if API call fails
+        //     var address = favouriteAddresses.FirstOrDefault(a => a.AddressId == addressId);
+        //     if (address != null) address.SmsAlertsEnabled = !currentValue;
+        // }
+    }
+}

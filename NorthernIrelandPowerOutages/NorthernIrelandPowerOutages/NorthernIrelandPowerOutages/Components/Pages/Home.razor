@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using AddressService
 @using Domain.Backend
+@using FaultPredictionService
 @using Infrastructure.Data
 @using Infrastructure.Email
 @using Infrastructure.Helpers
@@ -29,6 +30,7 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
+@inject IFaultPrediction faultPrediction;
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
@@ -72,6 +74,11 @@
             <ServiceUploadOverlay OnClose="HideServiceUploadOverlay" Latitude="@newMarkerLatitude" Longitude="@newMarkerLongitude" />
         }
 
+        @if (showFaultOverlay)
+        {
+            <FaultOverlay OnClose="HideFaultOverlay" fault="@selectedFault" />
+        }
+
         <div class="mt-3">
             <button class="btn @(isPlacingMarkers ? "btn-warning" : "btn-primary")" @onclick="ToggleMarkerPlacement">
                 @(isPlacingMarkers ? "Disable Marker Placement" : "Enable Marker Placement")
@@ -96,7 +103,7 @@
             <button @onclick="SendEmail">Send Email</button>
             @* <button @onclick="UploadHazard">Upload Hazard</button> *@
 
-            <a href="/account/edit">Edit User</a>
+            <a href="/account/account-information">Edit User</a>
 
             <a href="/search">Search</a>
             <a href="/hazard-upload">Upload Hazard</a>

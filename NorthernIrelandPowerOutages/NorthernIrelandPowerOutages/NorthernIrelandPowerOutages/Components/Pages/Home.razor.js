@@ -22,7 +22,22 @@ export function initMap(markers, dotNetHelper) {
             },
             gestureHandling: "greedy",
             zoom: 8,
-            center: { lat: 54.6079, lng: -5.9264 }
+            center: { lat: 54.6079, lng: -5.9264 },
+            styles: [
+                {
+                    featureType: "poi",
+                    stylers: [
+                        { visibility: "off" }
+                    ]
+                },
+                {
+                    featureType: "road",
+                    elementType: "labels",
+                    stylers: [
+                        { visibility: "off" }
+                    ]
+                }
+            ]
         });
 
         googleMap.fitBounds(bounds);
@@ -39,7 +54,7 @@ export function initMap(markers, dotNetHelper) {
                 title: marker.Name,
                 icon: {
                     url: iconUrl,
-                    size: new google.maps.Size(30, 30),
+                    size: new google.maps.Size(60, 60),
                     scaledSize: new google.maps.Size(30, 30)
                 }
                 // <-- no map property here
@@ -308,7 +323,7 @@ export function updateMarkers(markers) {
             title: marker.Name,
             icon: {
                 url: iconUrl,
-                size: new google.maps.Size(30, 30),
+                size: new google.maps.Size(60, 60),
                 scaledSize: new google.maps.Size(30, 30)
             }
         };
