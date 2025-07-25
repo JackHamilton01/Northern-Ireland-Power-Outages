@@ -1,16 +1,14 @@
-using Domain.Backend;
+﻿using Domain.Backend;
 using Infrastructure.Helpers;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.JSInterop;
 using NorthernIrelandPowerOutages.Models;
 using System.Globalization;
 using System.Security.Claims;
 
 namespace NorthernIrelandPowerOutages.Components.Overlays
 {
-    public partial class FaultOverlay
+    public partial class PlannedOutageOverlay
     {
         private readonly string notAvailableMessage = "Not available";
         private readonly string dateTimeFormatString = "h:mm tt, dd MMM yyyy";

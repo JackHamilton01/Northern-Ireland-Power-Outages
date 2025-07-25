@@ -16,5 +16,6 @@ namespace Domain.Backend
 
         public ApplicationUser ApplicationUser { get; set; }
         public Address Address { get; set; }
+        public bool AlertSent { get; set; }
     }
 }

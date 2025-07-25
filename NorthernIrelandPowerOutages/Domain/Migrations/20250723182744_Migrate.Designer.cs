@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domain.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250717191220_NewlyMigr")]
-    partial class NewlyMigr
+    [Migration("20250723182744_Migrate")]
+    partial class Migrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -200,6 +200,31 @@ namespace Domain.Migrations
                     b.ToTable("HazardImage");
                 });
 
+            modelBuilder.Entity("Domain.Backend.HistoricalFault", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("PostCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StreetName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StreetNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HistoricalFaults");
+                });
+
             modelBuilder.Entity("Domain.Backend.OutagePredictionTrainingData", b =>
                 {
                     b.Property<int>("Id")
@@ -209,13 +234,16 @@ namespace Domain.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<double>("Latitude")
-                        .HasColumnType("double precision");
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "lat");
 
                     b.Property<double>("Longitude")
-                        .HasColumnType("double precision");
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "lon");
 
                     b.Property<int>("Outage")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasAnnotation("Relational:JsonPropertyName", "outage");
 
                     b.Property<float>("Rain")
                         .HasColumnType("real");
@@ -259,6 +287,35 @@ namespace Domain.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("Domain.Backend.Settings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Settings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "LastPredictionTrainedTimestamp",
+                            Value = ""
+                        });
                 });
 
             modelBuilder.Entity("Domain.OutagePredictionModel", b =>

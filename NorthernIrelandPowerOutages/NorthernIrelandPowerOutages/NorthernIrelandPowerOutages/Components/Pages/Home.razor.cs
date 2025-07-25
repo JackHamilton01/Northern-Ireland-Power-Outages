@@ -43,6 +43,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private bool showUploadServiceOverlay = false;
         private OutageMessage? selectedFault;
         private bool showFaultOverlay = false;
+        private bool showPlannedOutageOverlay = false;
         private List<GoogleMapPin>? childPins;
 
         private double newMarkerLatitude;
@@ -246,8 +247,10 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                 module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Pages/Home.razor.js");
                 await module.InvokeVoidAsync("setBlazorComponentReference", dotNetObjectReference);
 
+                HistoricalFaultSavingService.StartListeningForFaults();
                 FaultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
                 await FaultPollingService.StartAsync();
+
                 return;
             }
 
@@ -373,7 +376,14 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                 selectedFault = await Http.GetFromJsonAsync<OutageMessage>($"https://localhost:7125/faults/{outageId}");
 
                 showFaultOverlay = true;
+            }
+            else if (googleMapPin.MarkerType == MarkerType.Planned)
+            {
+                var outageId = googleMapPin.Name;
+                string encodedString = Uri.EscapeDataString(outageId);
+                selectedFault = await Http.GetFromJsonAsync<OutageMessage>($"https://localhost:7125/faults/{encodedString}");
 
+                showPlannedOutageOverlay = true;
             }
             else if (googleMapPin.MarkerType == MarkerType.Multiple)
             {
@@ -413,7 +423,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
         public void SendMessage()
         {
-            SmsSender.SendMessage(PersonalSettings.Value.PhoneNumber, "Test message");
+            SmsSender.SendMessageAsync(PersonalSettings.Value.PhoneNumber, "Test message");
         }
 
         public async void SendEmail()
@@ -504,6 +514,12 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private void HideFaultOverlay()
         {
             showFaultOverlay = false;
+            selectedFault = null;
+        }
+
+        private void HidePlannedOutageOverlay()
+        {
+            showPlannedOutageOverlay = false;
             selectedFault = null;
         }
 

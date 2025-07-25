@@ -7,7 +7,10 @@
 @using Domain.Frontend
 @using System.Security.Claims
 @using Infrastructure.Data
+@using Infrastructure.Requests
 @using Microsoft.EntityFrameworkCore
+@using System.Text.Json
+@using System.Text
 @rendermode InteractiveServer
 
 <div class="container py-4">
@@ -82,7 +85,7 @@
 
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" role="switch" id="smsAlerts_@address.Id"
-                                           @onchange="() => ToggleSmsAlerts(address.Id, address.SmsAlertsEnabled)">
+                                           @onchange="(e) => ToggleSmsAlerts(address.Id, (bool)e.Value)">
                                     <label class="form-check-label" for="smsAlerts_@address.Id">SMS alerts</label>
                                 </div>
 
@@ -149,66 +152,34 @@
         var address = addresses.Where(f => f.Id == addressId).FirstOrDefault();
         address.EmailAlertsEnabled = currentValue;
 
-        var requestBody = new
+        UpdateAddressAlertsRequest requestBody = new()
         {
-            userId = authenticatedUser?.Id,
-            addressId = addressId,
-            sendSmsAlerts = address.SmsAlertsEnabled,
-            sendEmailAlerts = currentValue,
+            UserId = authenticatedUser?.Id,
+            AddressId = addressId,
+            SendSmsAlerts = address.SmsAlertsEnabled,
+            SendEmailAlerts = currentValue,
         };
 
-        HttpResponseMessage? response = await Http.PostAsJsonAsync("https://localhost:7228/address/update-address-alerts", requestBody);
-
-        if (response.IsSuccessStatusCode)
-        {
-            
-        }
-
-        // if (string.IsNullOrEmpty(currentUserId))
-        // {
-        //     Console.WriteLine("Error: Current user ID not set. Cannot toggle alerts.");
-        //     return;
-        // }
-
-        // var updateDto = new UpdatePreferenceDto { EmailAlertsEnabled = currentValue };
-        // try
-        // {
-        //     var response = await Http.PutAsJsonAsync($"api/users/{currentUserId}/favourite-addresses/{addressId}/preferences", updateDto);
-        //     response.EnsureSuccessStatusCode();
-        //     Console.WriteLine($"Address {addressId} Email Alerts Toggled to: {currentValue}");
-        // }
-        // catch (HttpRequestException ex)
-        // {
-        //     Console.WriteLine($"Error toggling email alerts: {ex.Message}");
-        //     // Revert UI state if API call fails (optional, but good UX)
-        //     var address = favouriteAddresses.FirstOrDefault(a => a.AddressId == addressId);
-        //     if (address != null) address.EmailAlertsEnabled = !currentValue;
-        // }
+        HttpResponseMessage? response = await Http.PostAsJsonAsync(
+            "https://localhost:7228/address/update-address-alerts",
+            requestBody);
     }
 
     private async Task ToggleSmsAlerts(int addressId, bool currentValue)
     {
         var address = addresses.Where(f => f.Id == addressId).FirstOrDefault();
         address.SmsAlertsEnabled = currentValue;
-        // if (string.IsNullOrEmpty(currentUserId))
-        // {
-        //     Console.WriteLine("Error: Current user ID not set. Cannot toggle alerts.");
-        //     return;
-        // }
 
-        // var updateDto = new UpdatePreferenceDto { SmsAlertsEnabled = currentValue };
-        // try
-        // {
-        //     var response = await Http.PutAsJsonAsync($"api/users/{currentUserId}/favourite-addresses/{addressId}/preferences", updateDto);
-        //     response.EnsureSuccessStatusCode();
-        //     Console.WriteLine($"Address {addressId} SMS Alerts Toggled to: {currentValue}");
-        // }
-        // catch (HttpRequestException ex)
-        // {
-        //     Console.WriteLine($"Error toggling SMS alerts: {ex.Message}");
-        //     // Revert UI state if API call fails
-        //     var address = favouriteAddresses.FirstOrDefault(a => a.AddressId == addressId);
-        //     if (address != null) address.SmsAlertsEnabled = !currentValue;
-        // }
+        UpdateAddressAlertsRequest requestBody = new()
+        {
+            UserId = authenticatedUser?.Id,
+            AddressId = addressId,
+            SendEmailAlerts = address.EmailAlertsEnabled,
+            SendSmsAlerts = currentValue,
+        };
+
+        HttpResponseMessage? response = await Http.PostAsJsonAsync(
+            "https://localhost:7228/address/update-address-alerts",
+            requestBody);
     }
 }

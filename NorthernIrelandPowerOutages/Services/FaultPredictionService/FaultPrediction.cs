@@ -96,7 +96,6 @@ namespace FaultPredictionService
                 });
             }
 
-
             await Train(faultTrainingData.Concat(noFaultTrainingData));
         }
 

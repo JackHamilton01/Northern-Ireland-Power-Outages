@@ -2,6 +2,8 @@
 using Domain.Backend;
 using Domain.Frontend;
 using Infrastructure.Data;
+using Infrastructure.Requests;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 
@@ -73,33 +75,29 @@ namespace DataAccess.Endpoints
             }
             return Results.Ok((AddressUI)candidates.FirstOrDefault(a => AddressEquals(inputAddress, a)));
         }
-
         private static async Task<IResult> UpdateAddressAlerts(
             HttpContext context,
-            string userId,
-            int addressId,
-            bool sendSmsAlerts,
-            bool sendEmailAlerts)
+            [FromBody] UpdateAddressAlertsRequest request)
         {
             ApplicationDbContext? dbContext = context.RequestServices.GetRequiredService<ApplicationDbContext>();
 
             FavouriteAddressPreferences? favouriteAddressPreference = await dbContext.FavouriteAddressPreferences
-                .Where(a => a.ApplicationUserId == userId && a.AddressId == addressId)
+                .Where(a => a.ApplicationUserId == request.UserId && a.AddressId == request.AddressId)
                 .FirstOrDefaultAsync();
 
             if (favouriteAddressPreference is null)
             {
                 favouriteAddressPreference = new FavouriteAddressPreferences()
                 {
-                    AddressId = addressId,
-                    ApplicationUserId = userId,
-                    EmailAlertsEnabled = sendEmailAlerts,
-                    SmsAlertsEnabled = sendSmsAlerts,
+                    AddressId = request.AddressId,
+                    ApplicationUserId = request.UserId,
+                    EmailAlertsEnabled = request.SendEmailAlerts,
+                    SmsAlertsEnabled = request.SendSmsAlerts,
                 };
             }
 
-            favouriteAddressPreference.EmailAlertsEnabled = sendEmailAlerts;
-            favouriteAddressPreference.SmsAlertsEnabled = sendSmsAlerts;
+            favouriteAddressPreference.EmailAlertsEnabled = request.SendEmailAlerts;
+            favouriteAddressPreference.SmsAlertsEnabled = request.SendSmsAlerts;
 
             await dbContext.SaveChangesAsync();
 

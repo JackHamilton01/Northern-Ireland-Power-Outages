@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domain.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250716204956_Migrate2")]
-    partial class Migrate2
+    [Migration("20250723200842_Alert")]
+    partial class Alert
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -58,8 +58,9 @@ namespace Domain.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("StreetNumber")
-                        .HasColumnType("integer");
+                    b.Property<string>("StreetNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -138,6 +139,9 @@ namespace Domain.Migrations
                     b.Property<int>("AddressId")
                         .HasColumnType("integer");
 
+                    b.Property<bool>("AlertSent")
+                        .HasColumnType("boolean");
+
                     b.Property<bool>("EmailAlertsEnabled")
                         .HasColumnType("boolean");
 
@@ -199,6 +203,31 @@ namespace Domain.Migrations
                     b.ToTable("HazardImage");
                 });
 
+            modelBuilder.Entity("Domain.Backend.HistoricalFault", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("PostCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StreetName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("StreetNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HistoricalFaults");
+                });
+
             modelBuilder.Entity("Domain.Backend.OutagePredictionTrainingData", b =>
                 {
                     b.Property<int>("Id")
@@ -208,13 +237,16 @@ namespace Domain.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<double>("Latitude")
-                        .HasColumnType("double precision");
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "lat");
 
                     b.Property<double>("Longitude")
-                        .HasColumnType("double precision");
+                        .HasColumnType("double precision")
+                        .HasAnnotation("Relational:JsonPropertyName", "lon");
 
                     b.Property<int>("Outage")
-                        .HasColumnType("integer");
+                        .HasColumnType("integer")
+                        .HasAnnotation("Relational:JsonPropertyName", "outage");
 
                     b.Property<float>("Rain")
                         .HasColumnType("real");
@@ -258,6 +290,35 @@ namespace Domain.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("Domain.Backend.Settings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Settings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "LastPredictionTrainedTimestamp",
+                            Value = ""
+                        });
                 });
 
             modelBuilder.Entity("Domain.OutagePredictionModel", b =>

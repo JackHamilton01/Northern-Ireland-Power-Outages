@@ -18,6 +18,7 @@ namespace Infrastructure.Data
         public DbSet<OutagePredictionModel> OutagePredictionModels { get; set; }
         public DbSet<FavouriteAddressPreferences> FavouriteAddressPreferences { get; set; }
         public DbSet<Domain.Backend.Settings> Settings { get; set; }
+        public DbSet<HistoricalFault> HistoricalFaults { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {

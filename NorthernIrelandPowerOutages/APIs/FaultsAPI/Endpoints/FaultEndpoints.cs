@@ -1,5 +1,6 @@
 ﻿using FaultsAPI.Data;
 using NorthernIrelandPowerOutages.Models;
+using System.Net;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FaultsAPI.Endpoints
@@ -88,6 +89,8 @@ namespace FaultsAPI.Endpoints
 
         private static async Task<IResult> LoadFaultByIncidentReferenceAsync(FaultData data, string outageId, int? delay)
         {
+            string decodedId = WebUtility.UrlDecode(outageId);
+
             var faults = await data.LoadFaultsAsync();
 
             if (delay is not null)
@@ -101,7 +104,7 @@ namespace FaultsAPI.Endpoints
                 await Task.Delay((int)delay);
             }
 
-            var match = faults.OutageMessage.SingleOrDefault(x => x.OutageId == outageId);
+            var match = faults.OutageMessage.SingleOrDefault(x => x.OutageId == decodedId);
             if (match != null)
             {
                 return Results.Ok(match);

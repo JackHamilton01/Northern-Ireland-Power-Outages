@@ -18,7 +18,7 @@ namespace SmsService
             TwilioClient.Init(settings.TwilioAccountSid, settings.TwilioAuthToken);
         }
 
-        public async Task<SmsResult> SendMessage(string targetPhoneNumber, string messageContent)
+        public async Task<SmsResult> SendMessageAsync(string targetPhoneNumber, string messageContent)
         {
             return await SendMessage(settings.TwilioPhoneNumber, targetPhoneNumber, messageContent);
         }

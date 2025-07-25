@@ -1,6 +1,7 @@
 ﻿using AddressService;
 using EmailService;
 using FaultPredictionService;
+using FaultService;
 using GeocodeService;
 using HazardVerifyService;
 using Infrastructure.Data;
@@ -37,6 +38,7 @@ namespace NorthernIrelandPowerOutages.Startup
             builder.Services.AddScoped<IGeocodeService, GeocodeService.GeocodeService>();
 
             builder.Services.AddSingleton<IFaultPollingService, FaultPollingService>();
+            builder.Services.AddTransient<IHistoricalFaultSavingService, HistoricalFaultSavingService>();
 
             builder.Services.AddChatClient(HazardVerify.GetOllamaApiClient());
 

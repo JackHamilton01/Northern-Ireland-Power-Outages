@@ -18,7 +18,7 @@ namespace Domain.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StreetNumber = table.Column<int>(type: "integer", nullable: false),
+                    StreetNumber = table.Column<string>(type: "text", nullable: false),
                     StreetName = table.Column<string>(type: "text", nullable: false),
                     BuildingDetails = table.Column<string>(type: "text", nullable: true),
                     City = table.Column<string>(type: "text", nullable: false),
@@ -88,6 +88,21 @@ namespace Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HistoricalFaults",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    StreetNumber = table.Column<string>(type: "text", nullable: false),
+                    StreetName = table.Column<string>(type: "text", nullable: false),
+                    PostCode = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HistoricalFaults", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OutagePredictionModels",
                 columns: table => new
                 {
@@ -109,11 +124,11 @@ namespace Domain.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Latitude = table.Column<double>(type: "double precision", nullable: false),
                     Longitude = table.Column<double>(type: "double precision", nullable: false),
+                    Outage = table.Column<int>(type: "integer", nullable: false),
                     Temp = table.Column<float>(type: "real", nullable: false),
                     WindSpeed = table.Column<float>(type: "real", nullable: false),
                     Rain = table.Column<float>(type: "real", nullable: false),
-                    Thunderstorm = table.Column<int>(type: "integer", nullable: false),
-                    Outage = table.Column<int>(type: "integer", nullable: false)
+                    Thunderstorm = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -137,6 +152,20 @@ namespace Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Settings",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Settings", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -153,30 +182,6 @@ namespace Domain.Migrations
                         name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AddressApplicationUser",
-                columns: table => new
-                {
-                    FavoriteAddressesId = table.Column<int>(type: "integer", nullable: false),
-                    UsersId = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AddressApplicationUser", x => new { x.FavoriteAddressesId, x.UsersId });
-                    table.ForeignKey(
-                        name: "FK_AddressApplicationUser_Addresses_FavoriteAddressesId",
-                        column: x => x.FavoriteAddressesId,
-                        principalTable: "Addresses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AddressApplicationUser_AspNetUsers_UsersId",
-                        column: x => x.UsersId,
-                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -267,6 +272,32 @@ namespace Domain.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "FavouriteAddressPreferences",
+                columns: table => new
+                {
+                    ApplicationUserId = table.Column<string>(type: "text", nullable: false),
+                    AddressId = table.Column<int>(type: "integer", nullable: false),
+                    EmailAlertsEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    SmsAlertsEnabled = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FavouriteAddressPreferences", x => new { x.ApplicationUserId, x.AddressId });
+                    table.ForeignKey(
+                        name: "FK_FavouriteAddressPreferences_Addresses_AddressId",
+                        column: x => x.AddressId,
+                        principalTable: "Addresses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_FavouriteAddressPreferences_AspNetUsers_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "HazardImage",
                 columns: table => new
                 {
@@ -285,10 +316,10 @@ namespace Domain.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_AddressApplicationUser_UsersId",
-                table: "AddressApplicationUser",
-                column: "UsersId");
+            migrationBuilder.InsertData(
+                table: "Settings",
+                columns: new[] { "Id", "Name", "Value" },
+                values: new object[] { 1, "LastPredictionTrainedTimestamp", "" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -328,6 +359,11 @@ namespace Domain.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_FavouriteAddressPreferences_AddressId",
+                table: "FavouriteAddressPreferences",
+                column: "AddressId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_HazardImage_HazardId",
                 table: "HazardImage",
                 column: "HazardId");
@@ -336,9 +372,6 @@ namespace Domain.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AddressApplicationUser");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -355,7 +388,13 @@ namespace Domain.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "FavouriteAddressPreferences");
+
+            migrationBuilder.DropTable(
                 name: "HazardImage");
+
+            migrationBuilder.DropTable(
+                name: "HistoricalFaults");
 
             migrationBuilder.DropTable(
                 name: "OutagePredictionModels");
@@ -367,10 +406,13 @@ namespace Domain.Migrations
                 name: "Services");
 
             migrationBuilder.DropTable(
-                name: "Addresses");
+                name: "Settings");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
+
+            migrationBuilder.DropTable(
+                name: "Addresses");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

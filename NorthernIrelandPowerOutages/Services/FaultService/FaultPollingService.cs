@@ -1,9 +1,10 @@
 ﻿using NorthernIrelandPowerOutages.Models;
+using NorthernIrelandPowerOutages.Services;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Timers;
 
-namespace NorthernIrelandPowerOutages.Services
+namespace FaultService
 {
     public class FaultPollingService : IFaultPollingService
     {

@@ -2,6 +2,7 @@
 @using AddressService
 @using Domain.Backend
 @using FaultPredictionService
+@using FaultService
 @using Infrastructure.Data
 @using Infrastructure.Email
 @using Infrastructure.Helpers
@@ -31,6 +32,7 @@
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JSRuntime
 @inject IFaultPrediction faultPrediction;
+@inject IHistoricalFaultSavingService HistoricalFaultSavingService;
 @rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
@@ -77,6 +79,11 @@
         @if (showFaultOverlay)
         {
             <FaultOverlay OnClose="HideFaultOverlay" fault="@selectedFault" />
+        }
+
+        @if (showPlannedOutageOverlay)
+        {
+            <PlannedOutageOverlay OnClose="HidePlannedOutageOverlay" fault="@selectedFault" />
         }
 
         <div class="mt-3">

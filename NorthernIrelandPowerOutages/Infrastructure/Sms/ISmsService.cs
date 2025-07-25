@@ -8,6 +8,6 @@ namespace Infrastructure.Sms
 {
     public interface ISmsSender
     {
-        Task<SmsResult> SendMessage(string targetPhoneNumber, string messageContent);
+        Task<SmsResult> SendMessageAsync(string targetPhoneNumber, string messageContent);
     }
 }

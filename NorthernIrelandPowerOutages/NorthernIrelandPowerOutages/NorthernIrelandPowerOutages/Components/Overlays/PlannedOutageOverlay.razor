@@ -1,0 +1,204 @@
+﻿@using GeocodeService
+@using Infrastructure.Data
+@using NorthernIrelandPowerOutages.Models
+@inject IGeocodeService GeocodeService
+@inject ApplicationDbContext DbContext
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="overlay">
+    <div class="overlay-content">
+        <div class="dialog-header">
+            <button class="icon-button" onclick="@AddToFavourites">
+                <span class="bi bi-heart"></span>
+            </button>
+            <button onclick="@CloseOverlay" class="icon-button close-button">
+                <span class="icon-close"></span>
+            </button>
+        </div>
+        <div class="dialog-body">
+            <div>
+                <span class="bi bi-clock-fill big-red-icon"></span>
+            </div>
+            <p class="dialog-title">Planned Outage</p>
+            <h3 class="dialog-location">@faultLocation</h3>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <p class="info-label">Time reported</p>
+                    <p class="info-value">@faultTimeReported</p>
+                    <p class="info-date">@faultDateReported</p>
+                </div>
+                <div class="info-box">
+                    <p class="info-label">Estimated restore time</p>
+                    <p class="info-value">@faultRestoreTime</p>
+                    <p class="info-date">@faultRestoreDate</p>
+                </div>
+            </div>
+
+            <div class="customers-affected">
+                <span>@Fault.NumCustAffected Customer/s affected</span>
+            </div>
+
+            <p class="apology-message">
+                @Fault.StatusMessage
+            </p>
+
+            <button class="keep-updated-button">Keep me updated</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .overlay-content {
+        background-color: #616161;
+        padding: 2rem;
+        border-radius: 8px;
+    }
+
+    /* Header with icon buttons */
+    .dialog-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 15px;
+    }
+
+    .big-red-icon {
+        font-size: 5em;
+        color: purple;
+    }
+
+    .icon-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #E0E0E0;
+        font-size: 1.5em; /* Adjust icon size */
+        display: flex; /* To center the icon */
+        justify-content: center;
+        align-items: center;
+        padding: 5px;
+        border-radius: 50%; /* Make them circular */
+        transition: background-color 0.2s;
+    }
+
+        .icon-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+    /* Unicode heart */
+    .icon-close::before {
+        content: '✕';
+    }
+
+    /* Body content */
+    .dialog-body {
+        text-align: center;
+    }
+
+    .dialog-title {
+        font-size: 0.9em;
+        text-transform: uppercase;
+        color: #B0B0B0; /* Slightly dimmer text for labels */
+        margin-bottom: 5px;
+    }
+
+    .dialog-location {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: white;
+        margin-top: 0;
+        margin-bottom: 25px;
+    }
+
+    /* Info grid for time reported and estimated restore time */
+    .info-grid {
+        display: flex;
+        justify-content: space-around;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .info-box {
+        background-color: #444; /* Slightly lighter box background */
+        border-radius: 8px;
+        padding: 15px;
+        flex: 1; /* Distribute space evenly */
+        text-align: center;
+    }
+
+    .info-label {
+        font-size: 0.8em;
+        color: #B0B0B0;
+        margin-bottom: 5px;
+        margin-top: 0;
+    }
+
+    .info-value {
+        font-size: 1.6em;
+        font-weight: bold;
+        color: white;
+        margin-bottom: 5px;
+        margin-top: 0;
+    }
+
+    .info-date {
+        font-size: 0.8em;
+        color: #B0B0B0;
+        margin-top: 0;
+    }
+
+    /* Customers affected section */
+    .customers-affected {
+        background-color: #555; /* A bit darker than info-box */
+        border-radius: 8px;
+        padding: 12px 15px;
+        margin-bottom: 25px;
+        font-size: 1.1em;
+        font-weight: bold;
+        color: white;
+    }
+
+    /* Apology message */
+    .apology-message {
+        font-size: 0.95em;
+        line-height: 1.4;
+        color: #E0E0E0;
+        margin-bottom: 30px;
+        padding: 0 5px; /* Slight padding to prevent text touching edges */
+    }
+
+    /* Keep me updated button */
+    .keep-updated-button {
+        background-color: #007BFF; /* A vibrant blue, adjust to your theme */
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 25px;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        width: auto; /* Adjust width to content */
+        min-width: 180px; /* Minimum width */
+        margin-bottom: 10px; /* Space from bottom of card */
+    }
+
+        .keep-updated-button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+</style>
