@@ -93,7 +93,7 @@ namespace Domain.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    StreetNumber = table.Column<string>(type: "text", nullable: false),
+                    StreetNumber = table.Column<string>(type: "text", nullable: true),
                     StreetName = table.Column<string>(type: "text", nullable: false),
                     PostCode = table.Column<string>(type: "text", nullable: false)
                 },
@@ -278,7 +278,8 @@ namespace Domain.Migrations
                     ApplicationUserId = table.Column<string>(type: "text", nullable: false),
                     AddressId = table.Column<int>(type: "integer", nullable: false),
                     EmailAlertsEnabled = table.Column<bool>(type: "boolean", nullable: false),
-                    SmsAlertsEnabled = table.Column<bool>(type: "boolean", nullable: false)
+                    SmsAlertsEnabled = table.Column<bool>(type: "boolean", nullable: false),
+                    AlertSent = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {

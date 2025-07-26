@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using NorthernIrelandPowerOutages.Models;
+using System;
 
 namespace NorthernIrelandPowerOutages.Components.Overlays
 {
@@ -72,9 +73,19 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
                     StateHasChanged();
 
                     var result = await LlavaClient.CallLlavaAsync(Path.Combine(config.GetValue<string>("FileStorage"), relativePath),
-                        $"Is this an image of {hazardInput.Title}");
+                        $"Is this an image of {hazardInput.Title}. Start your reply with either Yes or No," +
+                        $"then separating with a semi-colon(;)" +
+                        $"describe the image provided");
 
-                        response = result.Response;
+
+                    var llavaResponse = result.Response.Split(';');
+                    response = llavaResponse[1];
+
+                    if (llavaResponse[0].StartsWith("No"))
+                    {
+                        isSaving = false;
+                        return;
+                    }
                 }
                 hazardInput.Latitude = Latitude;
                 hazardInput.Longitude = Longitude;

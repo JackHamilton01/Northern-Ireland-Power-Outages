@@ -13,7 +13,13 @@ namespace FaultsAPI.Endpoints
             app.MapGet("/faults/{outageId}", LoadFaultByIncidentReferenceAsync);
         }
 
-        private static async Task<IResult> LoadAllFaultsAsync(FaultData data, string? outageType, string? postCode, int? delay)
+        private static async Task<IResult> LoadAllFaultsAsync(
+            FaultData data,
+            string? outageType,
+            string? streetNumber,
+            string? streetName,
+            string? postCode,
+            int? delay)
         {
             FaultModel? faults = await data.LoadFaultsAsync();
 

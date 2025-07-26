@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Domain.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250723200842_Alert")]
-    partial class Alert
+    [Migration("20250725152607_Migrate")]
+    partial class Migrate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -220,7 +220,6 @@ namespace Domain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("StreetNumber")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");

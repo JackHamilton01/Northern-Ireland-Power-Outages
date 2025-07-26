@@ -17,42 +17,105 @@
 
 <PageTitle>Register</PageTitle>
 
-<h1>Register</h1>
+<div class="register-container">
+    <div class="register-card">
+        <h1>Register</h1>
 
-<div class="row">
-    <div class="col-lg-6">
         <StatusMessage Message="@Message" />
+
         <EditForm Model="Input" asp-route-returnUrl="@ReturnUrl" method="post" OnValidSubmit="RegisterUser" FormName="register">
             <DataAnnotationsValidator />
-            <h2>Create a new account.</h2>
+            <h2 class="form-title">Create a new account.</h2>
             <hr />
-            <ValidationSummary class="text-danger" role="alert" />
+            <ValidationSummary class="text-danger mb-3" role="alert" />
+
             <div class="form-floating mb-3">
                 <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
                 <label for="Input.Email">Email</label>
-                <ValidationMessage For="() => Input.Email" class="text-danger" />
+                <ValidationMessage For="() => Input.Email" class="text-danger small" />
             </div>
+
             <div class="form-floating mb-3">
                 <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
                 <label for="Input.Password">Password</label>
-                <ValidationMessage For="() => Input.Password" class="text-danger" />
+                <ValidationMessage For="() => Input.Password" class="text-danger small" />
             </div>
+
             <div class="form-floating mb-3">
                 <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
                 <label for="Input.ConfirmPassword">Confirm Password</label>
-                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger small" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg register-button">Register</button>
+            </div>
         </EditForm>
     </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to register.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
-    </div>
 </div>
+
+<style>
+    .register-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: calc(100vh - 120px); /* Adjust based on header/footer height */
+        padding: 20px;
+        background-color: #f8f9fa; /* Consistent page background */
+    }
+
+    .register-card {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 900px; /* Wider for the two columns */
+        margin: auto;
+    }
+
+        .register-card h1 {
+            text-align: center;
+            color: #343a40;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .register-card .form-title {
+            color: #555;
+            font-size: 1.25rem;
+            margin-bottom: 20px;
+        }
+
+        .register-card hr {
+            margin-top: 15px;
+            margin-bottom: 25px;
+            border-top: 1px solid #dee2e6;
+        }
+
+    .register-button {
+        font-weight: bold;
+        letter-spacing: 0.5px;
+    }
+
+    /* External Logins Section */
+    .external-logins-section {
+        padding-left: 20px; /* Add some spacing if on larger screens */
+        padding-top: 20px; /* Add some top padding when stacked on smaller screens */
+        border-left: 1px solid #eee; /* A subtle separator on larger screens */
+        height: 100%; /* Make sure it takes full height of its column */
+        display: flex;
+        flex-direction: column;
+        justify-content: center; /* Vertically center content if there's extra space */
+    }
+
+        .external-logins-section h3 {
+            color: #555;
+            font-size: 1.15rem; /* Slightly smaller heading for external logins */
+            margin-bottom: 20px;
+        }
+
+</style>
 
 @code {
     private IEnumerable<IdentityError>? identityErrors;

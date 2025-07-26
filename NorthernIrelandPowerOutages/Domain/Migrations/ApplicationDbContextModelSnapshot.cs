@@ -217,7 +217,6 @@ namespace Domain.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("StreetNumber")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");

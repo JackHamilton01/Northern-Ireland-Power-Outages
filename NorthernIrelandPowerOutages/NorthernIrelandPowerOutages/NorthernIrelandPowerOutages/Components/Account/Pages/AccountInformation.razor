@@ -152,8 +152,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        var t = await GeocodeService.GetAddressesFromPostcodeAsync("BT42 1NA"); // Example
-
         AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         ClaimsPrincipal claimsPrincipal = authState.User;
 

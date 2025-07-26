@@ -11,62 +11,128 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
 
-<h3>Search</h3>
+<div class="card shadow-sm p-4 mb-4 bg-light rounded-3">
+    <div class="card-body">
+        <h5 class="card-title text-center text-primary mb-4">Find Outages by Address</h5>
 
-<div class="input-group mb-3">
-    <input type="text" @bind="postCode" class="form-control" placeholder="Enter postcode" aria-label="Enter postcode" />
-    <button class="btn btn-primary" @onclick="SearchByPostCode">Search</button>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="form-floating">
+                    <input @bind-value=streetNumber type="text" class="form-control" id="postNumberInput" placeholder="Street Number" />
+                    <label for="streetNumberInput">Street Number</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-floating">
+                    <input @bind-value=streetName type="text" class="form-control" id="streetNameInput" placeholder="Street Name" />
+                    <label for="streetNameInput">Street Name</label>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="form-floating">
+                    <input @bind-value=postCode type="text" class="form-control" id="postCodeInput" placeholder="Postcode" />
+                    <label for="postCodeInput">Postcode</label>
+                </div>
+            </div>
+        </div>
+        @if (errorMessage != null)
+        {
+            <div class="invalid-feedback d-block">
+                @errorMessage
+            </div>
+        }
+        <div class="d-grid gap-2 mt-4">
+            <button class="btn btn-primary btn-lg" @onclick="SearchByPostCode">
+                <i class="bi bi-search"></i> Search
+            </button>
+        </div>
+    </div>
 </div>
 
-@if (fault != null && fault.OutageMessage != null && fault.OutageMessage.Any())
+@if (string.IsNullOrWhiteSpace(streetNumber) ||
+    string.IsNullOrWhiteSpace(streetName) ||
+    string.IsNullOrWhiteSpace(postCode))
 {
-    <div class="container-fluid">
-        @foreach (var outage in fault.OutageMessage)
-        {
-            <div class="row mb-4">
-                <div class="col-12">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-body">
-                            <div class="row align-items-center">
-                                <div class="col-md-3">
-                                    <h5 class="card-title text-primary mb-0">ID: @outage.OutageId</h5>
-                                </div>
-                                <div class="col-md-3">
-                                    <h6 class="card-subtitle text-muted mb-0">Type: @outage.OutageType</h6>
-                                </div>
-                                <div class="col-md-2">
-                                    <p class="card-text mb-0">Post Code: @outage.PostCode</p>
-                                </div>
-                                <div class="col-md-3">
-                                    @* Adjusted column size slightly to accommodate button *@
-                                    <p class="card-text mb-0">Status: @outage.StatusMessage</p>
-                                </div>
-                                <div class="col-md-1 text-end">
-                                    @* Column for the heart button, aligned to the end *@
+    @* Display search results or info messages *@
+    @if (fault != null && fault.OutageMessage != null && fault.OutageMessage.Any())
+    {
+        <div class="container-fluid p-4">
+            <h4 class="mb-3 text-secondary">Outages Found</h4>
+            <div class="row row-cols-1 g-3">
+                @* Using g-3 for consistent gutter/gap *@
+                @foreach (var outage in fault.OutageMessage)
+                {
+                    <div class="col">
+                        <div class="card h-100 shadow-sm border-start border-primary border-4 rounded-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h5 class="card-title text-primary mb-0">Outage ID: @outage.OutageId</h5>
                                     <button class="btn btn-outline-danger btn-sm"
                                             @onclick='() => ToggleFavorite(outage)'
                                             aria-label="Toggle Favorite">
-                                        <i class="bi bi-heart"></i> @* Bootstrap Heart Icon *@
+                                        <i class="bi bi-heart"></i>
                                     </button>
                                 </div>
+                                <h6 class="card-subtitle text-muted mb-3">Type: @outage.OutageType</h6>
+                                <p class="card-text mb-1"><strong class="text-dark">Post Code:</strong> @outage.PostCode</p>
+                                <p class="card-text"><strong class="text-dark">Status:</strong> <span class="badge bg-info">@outage.StatusMessage</span></p>
                             </div>
                         </div>
                     </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info mt-4 text-center" role="alert">
+            <h4 class="alert-heading">No Fault Data</h4>
+            <p>Enter address details and click "Search" to find fault information.</p>
+            <hr>
+            <p class="mb-0">Your search results will appear here.</p>
+        </div>
+    }
+}
+
+@if (searchResults is not null)
+{
+    @foreach (var result in searchResults)
+    {
+        <div class="col p-4">
+            <div class="card h-100 shadow-sm border-start border-primary border-4 rounded-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title text-primary mb-0">Street Number: @streetNumber</h5>
+
+                        @if (!isSearchResultFavourited)
+                        {
+                            <button class="btn btn-outline-danger btn-sm"
+                                    @onclick='() => ToggleFavoriteFromSearch()'
+                                    aria-label="Toggle Favorite">
+                                <i class="bi bi-heart"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-danger btn-sm"
+                                    @onclick='() => ToggleFavoriteFromSearch()'
+                                    aria-label="Toggle Favorite">
+                                <i class="bi bi-heart-fill"></i>
+                            </button>
+                        }
+                    </div>
+                    <p class="card-text mb-1"><strong class="text-dark">Street Name:</strong> @streetName</p>
+                    <p class="card-text"><strong class="text-dark">Post Code:</strong> <span class="badge bg-info">@postCode</span></p>
+                    <h6 class="card-subtitle text-muted mb-3">Status: No fault</h6>
                 </div>
             </div>
-        }
-    </div>
-}
-else
-{
-    <div class="alert alert-info" role="alert">
-        No fault data available yet. Please enter a postcode and search.
-    </div>
+        </div>
+    }
 }
 
 @if (!string.IsNullOrEmpty(faultInfo))
 {
-    <div class="alert alert-warning mt-3" role="alert">
-        @faultInfo
+    <div class="alert alert-warning mt-3 text-center" role="alert">
+        <strong>Information:</strong> @faultInfo
     </div>
 }

@@ -45,6 +45,8 @@ namespace NorthernIrelandPowerOutages.Startup
             builder.Services.Configure<FaultsApiSettings>(
                 builder.Configuration.GetSection("FaultsApiSettings"));
 
+            builder.Services.Configure<AuthMessageSenderOptions>(builder.Configuration);
+
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddInteractiveWebAssemblyComponents()

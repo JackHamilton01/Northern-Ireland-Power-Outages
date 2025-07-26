@@ -8,9 +8,18 @@
 <div class="overlay">
     <div class="overlay-content">
         <div class="dialog-header">
-            <button class="icon-button" onclick="@AddToFavourites">
-                <span class="bi bi-heart"></span>
-            </button>
+            @if (isFavourited)
+            {
+                <button class="icon-button" onclick="@AddToFavourites">
+                    <span class="bi bi-heart-fill"></span>
+                </button>
+            }
+            else
+            {
+                <button class="icon-button" onclick="@AddToFavourites">
+                    <span class="bi bi-heart"></span>
+                </button>
+            }
             <button onclick="@CloseOverlay" class="icon-button close-button">
                 <span class="icon-close"></span>
             </button>
@@ -31,7 +40,7 @@
                 <div class="info-box">
                     <p class="info-label">Estimated restore time</p>
                     <p class="info-value">@faultRestoreTime</p>
-                    <p class="info-date">@faultRestoreDate</p>
+                    <p class="info-value">@faultRestoreDate</p>
                 </div>
             </div>
 

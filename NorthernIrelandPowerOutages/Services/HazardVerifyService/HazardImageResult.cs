@@ -8,12 +8,10 @@ namespace HazardVerifyService
 {
     public class HazardImageResult
     {
-        public bool IsMatchWithTitle { get; }
         public string Response { get; }
 
-        public HazardImageResult(bool isMatchWithTitle, string response)
+        public HazardImageResult(string response)
         {
-            IsMatchWithTitle = isMatchWithTitle;
             Response = response;
         }
     }

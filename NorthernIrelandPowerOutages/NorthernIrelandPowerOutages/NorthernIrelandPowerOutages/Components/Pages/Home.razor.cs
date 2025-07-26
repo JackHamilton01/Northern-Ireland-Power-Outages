@@ -49,7 +49,6 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private double newMarkerLatitude;
         private double newMarkerLongitude;
 
-        private void HideHazardUploadOverlay() => showUploadHazardOverlay = false;
         private void HideHazardViewOverlay() => showHazardViewOverlay = false;
 
         private HazardUI activeHazard;
@@ -127,7 +126,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
             await GetAllHazardsAndDisplay();
             await GetAllServicesAndDisplay();
-            await GetAllFaultPredictions();
+            _ = GetAllFaultPredictions();
             await HandleApproximateMarkerLocations();
         }
 
@@ -171,6 +170,9 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                         }
                     }
                 }
+
+                await module.InvokeVoidAsync("updateMarkers", markers);
+                StateHasChanged();
             }
             catch (Exception)
             {
@@ -446,6 +448,10 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         {
             if (hazards is not null)
             {
+                markers.Where(m => m.MarkerType == MarkerType.Hazard)
+                    .ToList()
+                    .ForEach(m => markers.Remove(m));
+
                 foreach (var hazard in hazards)
                 {
                     markers.Add(new GoogleMapPin()
@@ -465,6 +471,10 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         {
             if (services is not null)
             {
+                markers.Where(m => m.MarkerType == MarkerType.Service)
+                .ToList()
+                .ForEach(m => markers.Remove(m));
+
                 foreach (ServiceUI service in services)
                 {
                     markers.Add(new GoogleMapPin()
@@ -506,15 +516,26 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             showUploadSelectOverlay = false;
         }
 
-        private void HideServiceUploadOverlay()
+        private async Task HideServiceUploadOverlay()
         {
             showUploadServiceOverlay = false;
+
+            await GetAllServicesAndDisplay();
+            await module.InvokeVoidAsync("updateMarkers", markers);
         }
 
         private void HideFaultOverlay()
         {
             showFaultOverlay = false;
             selectedFault = null;
+        }
+
+        private async Task HideHazardUploadOverlay()
+        {
+            showUploadHazardOverlay = false;
+            await GetAllHazardsAndDisplay();
+
+            await module.InvokeVoidAsync("updateMarkers", markers);
         }
 
         private void HidePlannedOutageOverlay()

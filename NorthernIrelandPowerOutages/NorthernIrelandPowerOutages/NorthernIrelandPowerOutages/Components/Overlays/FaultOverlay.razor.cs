@@ -21,6 +21,8 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
         private string faultRestoreDate;
         private string faultLocation;
 
+        private bool isFavourited = false;
+
         private void CloseOverlay() => OnClose.InvokeAsync();
 
         [Parameter]
@@ -64,13 +66,73 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
 
             var (latitude, longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(Fault.Point.Easting, Fault.Point.Northing);
             GoogleGeocodeResponse? result = await GeocodeService.GetAddressFromLatLng(latitude, longitude);
+            Result? addressResult = result.Results.Where(r => !r.Types.Contains("plus_code")).FirstOrDefault();
 
-            Result? address = result.Results.Where(r => !r.Types.Contains("plus_code")).FirstOrDefault();
+            faultLocation = $"{addressResult.AddressComponents[0].ShortName} \n {addressResult.AddressComponents[1].ShortName}";
 
-            faultLocation = $"{address.AddressComponents[0].ShortName} \n {address.AddressComponents[1].ShortName}";
+            ApplicationUser? user = await GetAuthenticatedUser();
+            Address? address = await GetAddress();
+
+            Address? savedAddress = DbContext.Addresses.FirstOrDefault(a =>
+                a.StreetNumber == address.StreetNumber &&
+                a.StreetName == address.StreetName);
+
+            if (savedAddress is not null)
+            {
+                FavouriteAddressPreferences? favouriteAddress = DbContext.FavouriteAddressPreferences.FirstOrDefault(f =>
+                    f.AddressId == savedAddress.Id &&
+                    f.ApplicationUserId == user.Id);
+
+                if (favouriteAddress is not null)
+                {
+                    isFavourited = true;
+                }
+            }
         }
 
         private async Task AddToFavourites()
+        {
+            ApplicationUser? user = await GetAuthenticatedUser();
+            Address? address = await GetAddress();
+
+            DbContext.Addresses.Add(address);
+            await DbContext.SaveChangesAsync().ConfigureAwait(false); // Save changes to get ID of address
+
+            DbContext.FavouriteAddressPreferences.Add(new FavouriteAddressPreferences()
+            {
+                AddressId = address.Id,
+                ApplicationUserId = user.Id,
+                EmailAlertsEnabled = false,
+                SmsAlertsEnabled = false,
+            });
+            await DbContext.SaveChangesAsync().ConfigureAwait(false);
+
+            isFavourited = true;
+        }
+
+        private async Task<Address> GetAddress()
+        {
+            var (latitude, longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(Fault.Point.Easting, Fault.Point.Northing);
+            GoogleGeocodeResponse? result = await GeocodeService.GetAddressFromLatLng(latitude, longitude);
+
+            Result? firstAddress = result.Results.Where(r => r.Types.Contains("premise") || r.Types.Contains("street_address")).FirstOrDefault();
+
+            return new Address()
+            {
+                Id = 0,
+                City = firstAddress.AddressComponents.Where(a => a.Types.Contains("postal_town")).First().ShortName,
+                BuildingDetails = "N/A",
+                County = firstAddress.AddressComponents.Where(a => a.Types.Contains("postal_town")).First().ShortName,
+                Latitude = latitude,
+                Longitude = longitude,
+                PostCode = firstAddress.AddressComponents.Where(a => a.Types.Contains("postal_code")).First().ShortName,
+                StreetName = firstAddress.AddressComponents.Where(a => a.Types.Contains("route")).First().ShortName,
+                StreetNumber = firstAddress.AddressComponents.Where(a => a.Types.Contains("street_number")).First().ShortName,
+
+            };
+        }
+
+        private async Task<ApplicationUser?> GetAuthenticatedUser()
         {
             AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             ClaimsPrincipal claimsPrincipal = authState.User;
@@ -79,41 +141,10 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
             {
                 string? userId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if (userId is not null)
-                {
-                    ApplicationUser? user = DbContext.Users.Where(u => u.Id == userId).FirstOrDefault();
-
-                    var (latitude, longitude) = CoordinateHelpers.ConvertIrishGridToLatLon(Fault.Point.Easting, Fault.Point.Northing);
-                    GoogleGeocodeResponse? result = await GeocodeService.GetAddressFromLatLng(latitude, longitude);
-
-                    Result? firstAddress = result.Results.Where(r => r.Types.Contains("premise") || r.Types.Contains("street_address")).FirstOrDefault();
-
-                    Address address = new Address()
-                    {
-                        Id = 0,
-                        City = firstAddress.AddressComponents.Where(a => a.Types.Contains("postal_town")).First().ShortName,
-                        BuildingDetails = "N/A",
-                        County = firstAddress.AddressComponents.Where(a => a.Types.Contains("postal_town")).First().ShortName,
-                        Latitude = latitude,
-                        Longitude = longitude,
-                        PostCode = firstAddress.AddressComponents.Where(a => a.Types.Contains("postal_code")).First().ShortName,
-                        StreetName = firstAddress.AddressComponents.Where(a => a.Types.Contains("route")).First().ShortName,
-                        StreetNumber = firstAddress.AddressComponents.Where(a => a.Types.Contains("street_number")).First().ShortName,
-
-                    };
-                    DbContext.Addresses.Add(address);
-                    await DbContext.SaveChangesAsync().ConfigureAwait(false); // Save changes to get ID of address
-
-                    DbContext.FavouriteAddressPreferences.Add(new FavouriteAddressPreferences()
-                    {
-                        AddressId = address.Id,
-                        ApplicationUserId = user.Id,
-                        EmailAlertsEnabled = false,
-                        SmsAlertsEnabled = false,
-                    });
-                    await DbContext.SaveChangesAsync().ConfigureAwait(false);
-                }
+                return DbContext.Users.Where(u => u.Id == userId).FirstOrDefault();
             }
+
+            return null;
         }
     }
 }

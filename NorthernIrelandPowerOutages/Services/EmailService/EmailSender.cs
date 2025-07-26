@@ -8,16 +8,20 @@ using System.Threading.Tasks;
 using Infrastructure.ProjectSettings;
 using Infrastructure.Email;
 using Microsoft.Extensions.Options;
+using SendGrid;
+using SendGrid.Helpers.Mail;
 
 namespace EmailService
 {
     public class EmailSender : IEmailSender
     {
         private readonly SmtpSettings settings;
+        private readonly AuthMessageSenderOptions authMessageSenderOptions;
 
-        public EmailSender(IOptions<SmtpSettings> options)
+        public EmailSender(IOptions<SmtpSettings> stmpSettings, IOptions<AuthMessageSenderOptions> authMessageSenderOptions)
         {
-            settings = options.Value;
+            settings = stmpSettings.Value;
+            this.authMessageSenderOptions = authMessageSenderOptions.Value;
         }
 
         public async Task SendEmailAsync(string email, string subject, string message)
@@ -40,5 +44,27 @@ namespace EmailService
 
             await smtpClient.SendMailAsync(mailMessage);
         }
+        //public async Task SendAuthEmailAsync(string toEmail, string subject, string message)
+        //{
+        //    await Execute(subject, message, toEmail);
+        //}
+
+        //public async Task Execute(string subject, string message, string toEmail)
+        //{
+        //    var client = new SendGridClient(apiKey);
+        //    var msg = new SendGridMessage()
+        //    {
+        //        From = new EmailAddress("PowerOutagesNI@outlook.com", "Password Recovery"),
+        //        Subject = subject,
+        //        PlainTextContent = message,
+        //        HtmlContent = message
+        //    };
+        //    msg.AddTo(new EmailAddress(toEmail));
+
+        //    // Disable click tracking.
+        //    // See https://sendgrid.com/docs/User_Guide/Settings/tracking.html
+        //    msg.SetClickTracking(false, false);
+        //    var response = await client.SendEmailAsync(msg);
+        //}
     }
 }

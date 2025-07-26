@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace DataAccess.Helpers
+namespace Infrastructure.Helpers
 {
     public static class PostCodeHelper
     {
