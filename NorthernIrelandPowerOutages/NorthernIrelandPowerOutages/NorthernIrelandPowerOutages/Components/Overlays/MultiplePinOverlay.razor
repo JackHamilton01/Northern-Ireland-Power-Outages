@@ -1,7 +1,11 @@
 ﻿@inject HttpClient Http
 
 <div class="overlay">
-    <div class="overlay-content">
+    <div class="overlay-content position-relative">
+        <button type="button" class="btn-close mb-5" aria-label="Close" @onclick="CloseOverlay"
+                style="position: absolute; top: 10px; right: 10px;">
+        </button>
+
         <div class="multiple-pin-overlay">
             @if (ChildPins != null && ChildPins.Count > 0)
             {
@@ -9,17 +13,16 @@
                     @foreach (var pin in ChildPins)
                     {
                         <button class="@(pin.MarkerType == Models.MarkerType.Hazard ? "btn btn-danger" :
-                                        (pin.MarkerType == Models.MarkerType.Service ? "btn btn-info" :
-                                        (pin.MarkerType == Models.MarkerType.Favourite ? "btn btn-success" :
-                                        (pin.MarkerType == Models.MarkerType.Home ? "btn btn-secondary" :
-                                        (pin.MarkerType == Models.MarkerType.Prediction ? "btn btn-primary" : "btn btn-primary")))))"
-                            @onclick="() => OnButtonClicked(pin)">
-                        @pin.Name
-                    </button>
-                    }
+                                                                        (pin.MarkerType == Models.MarkerType.Service ? "btn btn-info" :
+                                                                        (pin.MarkerType == Models.MarkerType.Favourite ? "btn btn-success" :
+                                                                        (pin.MarkerType == Models.MarkerType.Home ? "btn btn-secondary" :
+                                                                        (pin.MarkerType == Models.MarkerType.Prediction ? "btn btn-primary" : "btn btn-primary")))))"
+                        @onclick="() => OnButtonClicked(pin)">
+                    @pin.Name
+                </button>
+                                }
                 </div>
             }
-            <button class="btn btn-secondary mt-3" @onclick="CloseOverlay">Close</button>
         </div>
     </div>
 </div>

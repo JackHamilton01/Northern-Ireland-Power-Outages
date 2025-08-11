@@ -20,7 +20,7 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
         private string faultRestoreTime;
         private string faultRestoreDate;
         private string faultLocation;
-
+        private ApplicationUser? user;
         private bool isFavourited = false;
 
         private void CloseOverlay() => OnClose.InvokeAsync();
@@ -60,7 +60,7 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
 
                 if (hasValidRestoreDate)
                 {
-                    faultRestoreDate = restoreDate.ToShortDateString();
+                    faultRestoreDate = Fault.EstRestoreFullDateTime;
                 }
             }
 
@@ -70,14 +70,14 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
 
             faultLocation = $"{addressResult.AddressComponents[0].ShortName} \n {addressResult.AddressComponents[1].ShortName}";
 
-            ApplicationUser? user = await GetAuthenticatedUser();
+            user = await GetAuthenticatedUser();
             Address? address = await GetAddress();
 
             Address? savedAddress = DbContext.Addresses.FirstOrDefault(a =>
                 a.StreetNumber == address.StreetNumber &&
                 a.StreetName == address.StreetName);
 
-            if (savedAddress is not null)
+            if (user is not null && savedAddress is not null)
             {
                 FavouriteAddressPreferences? favouriteAddress = DbContext.FavouriteAddressPreferences.FirstOrDefault(f =>
                     f.AddressId == savedAddress.Id &&

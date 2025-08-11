@@ -6,47 +6,154 @@
 
 <div class="overlay">
     <div class="overlay-content">
+        <button type="button" class="close-btn" @onclick="CloseOverlay">✕</button>
+        <h3 class="overlay-title">Add Service</h3>
         <EditForm Model="@serviceInput" OnValidSubmit="SaveService" FormName="serviceForm">
-            <div>
+            <div class="form-group">
                 <label for="name">Name</label>
-                <input id="name" class="form-control" @bind-value="serviceInput.Name" />
+                <input id="name" class="form-control" @bind-value="serviceInput.Name" placeholder="Enter service name" />
+
+                @if(!string.IsNullOrWhiteSpace(nameErrorMessage))
+                {
+                    <div class="text-danger mt-1">@nameErrorMessage</div>
+                }
             </div>
-            <div>
+            <div class="form-group">
                 <label for="description">Description</label>
-                <input id="description" class="form-control" @bind-value="serviceInput.Description" />
+                <input id="description" class="form-control" @bind-value="serviceInput.Description" placeholder="Enter service description" />
+
+                @if (!string.IsNullOrWhiteSpace(descriptionErrorMessage))
+                {
+                    <div class="text-danger mt-1">@descriptionErrorMessage</div>
+                }
             </div>
 
-            <button class="btn btn-primary mt-3" type="submit">Save</button>
+            <div class="button-row">
+                <button class="btn btn-primary" type="submit">Save</button>
+            </div>
         </EditForm>
-
-        <button @onclick="CloseOverlay">Close</button>
     </div>
 </div>
 
 <style>
+    /* Overlay background */
     .overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
+        inset: 0;
         background-color: rgba(0,0,0,0.5);
         z-index: 9999;
         display: flex;
         justify-content: center;
         align-items: center;
+        animation: fadeIn 0.3s ease-out;
     }
 
+    /* Card-style content */
     .overlay-content {
-        background-color: white;
+        position: relative;
+        background-color: #fff;
         padding: 2rem;
-        border-radius: 8px;
+        border-radius: 12px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        animation: slideUp 0.3s ease-out;
+    }
+
+    /* Close button in top right */
+    .close-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: none;
+        border: none;
+        font-size: 1.3rem;
+        color: #666;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 50%;
+        transition: background-color 0.2s ease;
+    }
+
+        .close-btn:hover {
+            background-color: rgba(0,0,0,0.05);
+        }
+
+    /* Title */
+    .overlay-title {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: #333;
+        text-align: center;
+    }
+
+    /* Form groups */
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #444;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.15);
+        }
+
+    /* Button row */
+    .button-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.8rem;
+        margin-top: 1.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.6rem 1rem;
+        font-size: 0.95rem;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .btn:active {
+        transform: scale(0.97);
     }
 </style>
 
 
 @code {
     private ServiceUI serviceInput = new();
+    private string? nameErrorMessage;
+    private string? descriptionErrorMessage;
     private void CloseOverlay() => OnClose.InvokeAsync();
 
     [Parameter]
@@ -60,6 +167,26 @@
 
     private void SaveService(EditContext args)
     {
+        bool isError = false;
+        nameErrorMessage = string.Empty;
+        descriptionErrorMessage = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(serviceInput.Name))
+        {
+            nameErrorMessage = "A valid name is required.";
+            isError = true;
+        }
+        if (string.IsNullOrWhiteSpace(serviceInput.Description))
+        {
+            descriptionErrorMessage = "A valid description is required.";
+            isError = true;
+        }
+
+        if (isError)
+        {
+            return;
+        }
+
         DbContext.Services.Add(new Service
         {
             Name = serviceInput.Name,

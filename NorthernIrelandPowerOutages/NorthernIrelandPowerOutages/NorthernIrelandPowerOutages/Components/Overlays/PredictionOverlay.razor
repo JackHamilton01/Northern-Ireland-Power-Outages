@@ -1,0 +1,168 @@
+﻿@using FaultPredictionService
+@using GeocodeService
+@inject IGeocodeService GeocodeService
+@inject IFaultPrediction faultPrediction;
+
+<div class="overlay">
+    <div class="overlay-content">
+        <div class="dialog-header">
+            <button onclick="@CloseOverlay" class="icon-button close-button">
+                <span class="icon-close"></span>
+            </button>
+        </div>
+        <div class="dialog-body">
+            <div>
+                <img src="Images/Map/Prediction.png" alt="Prediction icon" class="big-blue-icon">
+            </div>
+            <p class="dialog-title">Prediction</p>
+            <h3 class="dialog-location">@location</h3>
+
+            <div class="prediction-info">
+                <p class="prediction-label">Likelihood of experiencing an outage:</p>
+                <p class="prediction-value">@outageLikelihood%</p>
+            </div>
+
+            <p class="prediction-message">
+                This prediction is based off the weather forecast<br>
+                over the next 5 days
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 9999;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .overlay-content {
+        background-color: #f0f0f0;
+        padding: 2rem;
+        border-radius: 8px;
+    }
+
+    .dialog-header {
+        position: relative;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 10px 10px 0 0; 
+    }
+
+    .big-blue-icon {
+        color: #007BFF;
+        width: 10em;
+        height: 10em;
+    }
+
+    .close-button {
+        position: absolute;
+        top: 5px;
+        right: 10px;
+    }
+
+    .icon-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #333;
+        font-size: 1.5em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5px;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+    }
+
+        .icon-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+    .icon-close::before {
+        content: '✕';
+    }
+
+    .icon-warning::before {
+        content: '⚠';
+    }
+
+    .dialog-body {
+        text-align: center;
+    }
+
+    .dialog-title {
+        font-size: 0.9em;
+        text-transform: uppercase;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .dialog-location {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #222;
+        margin-top: 0;
+        margin-bottom: 25px;
+    }
+
+    .prediction-info {
+        background-color: #e8e8e8;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .prediction-label {
+        font-size: 1em;
+        color: #666;
+        margin: 0 0 5px 0;
+    }
+
+    .prediction-value {
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #222;
+        margin: 0;
+    }
+
+    .prediction-message {
+        font-size: 0.95em;
+        line-height: 1.4;
+        color: #444;
+        margin-bottom: 30px;
+        padding: 0 5px;
+        overflow-wrap: break-word;
+    }
+
+    .keep-updated-button {
+        background-color: #007BFF;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 25px;
+        font-size: 1.1em;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        width: auto;
+        min-width: 180px;
+        margin-bottom: 10px;
+    }
+
+        .keep-updated-button:hover {
+            background-color: #0056b3;
+        }
+</style>
+
+

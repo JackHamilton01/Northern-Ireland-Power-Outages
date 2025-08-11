@@ -9,73 +9,17 @@
 @inject ApplicationDbContext DbContext
 @inject AddressService.IAddressService AddressService
 @inject GeocodeService.IGeocodeService GeocodeService
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
-
-@* <EditForm Model="@addressInput" OnValidSubmit="SaveAddress" FormName="addressForm">
-    <div class="mb-3">
-        <label for="StreetNumber" class="form-label">Street Number:</label>
-        <InputNumber Id="StreetNumber" @bind-Value="@addressInput.StreetNumber" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label for="StreetName" class="form-label">Street Name:</label>
-        <InputText Id="StreetName" @bind-Value="@addressInput.StreetName" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label for="BuildingDetails" class="form-label">Building Details:</label>
-        <InputText Id="BuildingDetails" @bind-Value="@addressInput.BuildingDetails" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label for="City" class="form-label">City:</label>
-        <InputText Id="City" @bind-Value="@addressInput.City" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label for="County" class="form-label">County:</label>
-        <InputText Id="County" @bind-Value="@addressInput.County" class="form-control" />
-    </div>
-    <div class="mb-3">
-        <label for="PostCode" class="form-label">Postcode:</label>
-        <InputText Id="PostCode" @bind-Value="@addressInput.PostCode" class="form-control" />
-    </div>
-
-    <button type="submit" class="btn btn-primary">Save Address</button>
-</EditForm> *@
-@* 
-<hr class="my-4">
-<h4 class="mt-5 mb-3 text-center">Saved Addresses</h4>
-
-@if (addresses.Count == 0)
-{
-    <p class="alert alert-info text-center">No addresses found.</p>
-}
-else
-{
-    <ul class="list-group">
-        @foreach (var a in addresses)
-        {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>@($"{a.StreetNumber} {a.StreetName}, {a.City}, {a.County}, {a.PostCode}")</span>
-                <button @onclick="() => DeleteAddress(a.Id)" class="btn btn-danger btn-sm">Delete</button>
-            </li>
-        }
-    </ul>
-} *@
-
 
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10">
 
-            <div class="card bg-secondary text-white border-0 rounded-bottom-0">
-                <div class="card-body">
-                    <h2 class="card-title mb-1">Jack Hamilton</h2>
-                    <p class="card-text text-white-50">Last login: July 16, 2025</p>
-                </div>
-            </div>
-
             <div class="card mb-4 rounded-top-0 border-top-0">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Profile Details</h4>
-                    <button class="btn btn-secondary btn-sm">Manage account</button>
+                    <button class="btn btn-primary btn-sm" @onclick="NavigateToManageAccountDetails">Manage account</button>
                 </div>
                 <div class="card-body">
                     <div class="row mb-2">
@@ -84,11 +28,11 @@ else
                     </div>
                     <div class="row mb-2">
                         <div class="col-sm-4 fw-bold text-muted">Email</div>
-                        <div class="col-sm-8">jackhamilton2807@gmail.com</div>
+                        <div class="col-sm-8">@authenticatedUser.Email</div>
                     </div>
                     <div class="row">
                         <div class="col-sm-4 fw-bold text-muted">Phone number</div>
-                        <div class="col-sm-8">07787203559</div>
+                        <div class="col-sm-8">@authenticatedUser.PhoneNumber</div>
                     </div>
                 </div>
             </div>
@@ -96,7 +40,7 @@ else
             <div class="card mb-4">
                 <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Favourite addresses</h4>
-                    <button class="btn btn-secondary btn-sm" @onclick="ManageAddresses">Manage addresses</button>
+                    <button class="btn btn-primary btn-sm" @onclick="ManageAddresses">Manage addresses</button>
                 </div>
                 <div class="card-body">
                     @if (addresses.Count == 0)
@@ -177,71 +121,6 @@ else
         }
     }
 
-    private async Task SaveAddress(EditContext editContext)
-    {
-        try
-        {
-            var addressToSave = addressInput.Clone();
-
-            await SaveAddressChangesToDatabase(addressToSave);
-
-            addresses.Add(addressToSave);
-        }
-        catch (Exception)
-        {
-
-        }
-    }
-
-    private async Task SaveAddressChangesToDatabase(AddressUI addressToSave)
-    {
-        // var existingAddress = await AddressService.FindMatchingAddress(addressToSave);
-
-        // ApplicationUser user = await DbContext.Users
-        //     .Include(u => u.FavouriteAddressPreferences)
-        //     .FirstAsync(u => u.Id == authenticatedUser.Id);
-
-        // if (user.FavouriteAddressPreferences is null)
-        // {
-        //     user.FavouriteAddressPreferences = new List<FavouriteAddressPreferences>();
-        // }
-
-        // // User has already saved this address
-        // if (existingAddress is not null && user.FavouriteAddressPreferences.Contains(existingAddress))
-        // {
-        //     throw new Exception("This address has already been added to favourites");
-        // }
-
-        // Address addressToAdd;
-
-        // if (existingAddress is null)
-        // {
-        //     addressToAdd = addressToSave;
-        // }
-        // else
-        // {
-        //     addressToAdd = existingAddress;
-        // }
-
-        // if (!user.FavoriteAddresses.Any(a => a.Id == addressToAdd.Id))
-        // {
-        //     var geopoint = await GeocodeService.GetLatLongFromAddressAsync(addressToSave.ToString());
-
-        //     if (geopoint is null)
-        //     {
-        //         throw new Exception("Invalid address provided");
-        //     }
-
-        //     Address backendAddress = addressToAdd;
-        //     backendAddress.Latitude = geopoint.Latitude;
-        //     backendAddress.Longitude = geopoint.Longitude;
-
-        //     user.FavoriteAddresses.Add(backendAddress);
-        // }
-
-        // await DbContext.SaveChangesAsync();
-    }
-
     private async Task DeleteAddress(int id)
     {
         await DeleteAddressFromDatabase(id);
@@ -281,5 +160,10 @@ else
     private void ManageAddresses()
     {
         NavManager.NavigateTo("/address-management");
+    }
+
+    private void NavigateToManageAccountDetails(MouseEventArgs args)
+    {
+        NavManager.NavigateTo("/manage-details");
     }
 }

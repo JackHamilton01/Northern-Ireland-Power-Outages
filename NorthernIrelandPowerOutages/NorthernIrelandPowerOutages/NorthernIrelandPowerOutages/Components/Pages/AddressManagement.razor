@@ -17,16 +17,6 @@
     <div class="row justify-content-center">
         <div class="col-lg-8 col-md-10">
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="mb-0">Your Favourite Addresses</h3>
-                <button class="btn btn-outline-secondary btn-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left me-1" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-                    </svg>
-                    Back to Profile
-                </button>
-            </div>
-
             @if (addresses == null)
             {
                 <p class="text-center text-muted">Loading addresses...</p>
@@ -39,6 +29,17 @@
             }
             else
             {
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="globalConsent" @bind="ConsentGiven">
+                        <label class="form-check-label" for="globalConsent">
+                            I agree to be contacted by NI Power Outages to receive updates. I confirm I am 16 years or over
+                            <strong class="text-danger">(required)</strong>.
+                            <a href="/terms-and-conditions" target="_blank">Terms and Conditions</a>
+                        </label>
+                    </div>
+                </div>
+
                 @foreach (var address in addresses)
                 {
                     <div class="card mb-4 shadow-sm custom-address-display-card">
@@ -77,25 +78,28 @@
                             <hr class="my-3">
 
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="emailAlerts_@address.Id"
-                                           @onchange="(e) => ToggleEmailAlerts(address.Id, (bool)e.Value)">
-                                    <label class="form-check-label" for="emailAlerts_@address.Id">Email alerts</label>
-                                </div>
+                                @if (showToggles)
+                                {
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="emailAlerts_@address.Id"
+                                               @onchange="(e) => ToggleEmailAlerts(address.Id, (bool)e.Value)">
+                                        <label class="form-check-label" for="emailAlerts_@address.Id">Email alerts</label>
+                                    </div>
 
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="smsAlerts_@address.Id"
-                                           @onchange="(e) => ToggleSmsAlerts(address.Id, (bool)e.Value)">
-                                    <label class="form-check-label" for="smsAlerts_@address.Id">SMS alerts</label>
-                                </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="smsAlerts_@address.Id"
+                                               @onchange="(e) => ToggleSmsAlerts(address.Id, (bool)e.Value)">
+                                        <label class="form-check-label" for="smsAlerts_@address.Id">SMS alerts</label>
+                                    </div>
+                                }
 
-                                <button class="btn btn-danger btn-sm ms-auto" @onclick="() => DeleteAddress(address.Id)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
-                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H9.5a1 1 0 0 1 1 1v1H14a1 1 0 0 1 1 1v1zM2.5 3V2h11v1h-11z"/>
-                                    </svg>
-                                    Delete
-                                </button>
+                                    <button class="btn btn-danger btn-sm ms-auto" @onclick="() => DeleteAddress(address.Id)">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash me-1" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H9.5a1 1 0 0 1 1 1v1H14a1 1 0 0 1 1 1v1zM2.5 3V2h11v1h-11z" />
+                                        </svg>
+                                        Delete
+                                    </button>
                             </div>
                         </div>
                     </div>
@@ -105,14 +109,56 @@
     </div>
 </div>
 
+<style>
+    .custom-checkbox-input {
+        width: 1.5em;
+        height: 1.5em;
+
+        border-color: #007bff;
+    }
+
+    .custom-checkbox-input:checked {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .form-check-input {
+        border-color: #333;
+    }
+
+        .form-check-input:checked {
+            border-color: #000; 
+        }
+</style>
+
 @code {
     private List<AddressUI> addresses = new();
     private ApplicationUser? authenticatedUser;
+    private bool showToggles = false;
+
+    private bool consentGiven;
+
+    public bool ConsentGiven
+    {
+        get { return consentGiven; }
+        set
+        {
+            consentGiven = value;
+            showToggles = value; // Show toggles only if consent is given
+
+            if (!consentGiven)
+            {
+                foreach (var address in addresses)
+                {
+                    address.EmailAlertsEnabled = false;
+                }
+            }
+        }
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
-        // var t = await GeocodeService.GetAddressesFromPostcodeAsync("BT42 1NA"); // Example
-
         AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         ClaimsPrincipal claimsPrincipal = authState.User;
 

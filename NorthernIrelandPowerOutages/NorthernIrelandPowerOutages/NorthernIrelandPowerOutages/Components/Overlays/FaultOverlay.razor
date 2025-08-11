@@ -16,9 +16,12 @@
             }
             else
             {
-                <button class="icon-button" onclick="@AddToFavourites">
-                    <span class="bi bi-heart"></span>
-                </button>
+                @if (user is not null)
+                {
+                    <button class="icon-button" onclick="@AddToFavourites">
+                        <span class="bi bi-heart"></span>
+                    </button>
+                }
             }
             <button onclick="@CloseOverlay" class="icon-button close-button">
                 <span class="icon-close"></span>
@@ -51,169 +54,179 @@
             <p class="apology-message">
                 @Fault.StatusMessage
             </p>
-
-            <button class="keep-updated-button">Keep me updated</button>
         </div>
     </div>
 </div>
 
 <style>
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(0,0,0,0.5);
-        z-index: 9999;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
     }
 
-    .overlay-content {
-        background-color: #616161;
-        padding: 2rem;
-        border-radius: 8px;
+        .overlay-content {
+                background-color: #f0f0f0;
+                padding: 2rem;
+                border-radius: 8px;
+
     }
 
-    /* Header with icon buttons */
-    .dialog-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 15px;
+        .dialog-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding-bottom: 15px;
+
     }
 
-    .big-red-icon {
-        font-size: 5em;
-        color: red;
+        .big-red-icon {
+                font-size: 5em;
+                color: red;
+
     }
 
-    .icon-button {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #E0E0E0;
-        font-size: 1.5em; /* Adjust icon size */
-        display: flex; /* To center the icon */
-        justify-content: center;
-        align-items: center;
-        padding: 5px;
-        border-radius: 50%; /* Make them circular */
-        transition: background-color 0.2s;
+        .icon-button {
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #333;
+                font-size: 1.5em;
+                  display: flex;
+                  justify-content: center;
+                align-items: center;
+                padding: 5px;
+                border-radius: 50%;
+                transition: background-color 0.2s;
+
     }
 
-        .icon-button:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
+            .icon-button:hover {
+                    background-color: rgba(0, 0, 0, 0.1);
 
-    /* Unicode heart */
-    .icon-close::before {
-        content: '✕';
-    }
-    /* Multiplication X */
-    .icon-warning::before {
-        content: '⚠';
-    }
-    /* Warning sign */
-
-    /* Body content */
-    .dialog-body {
-        text-align: center;
     }
 
-    .dialog-title {
-        font-size: 0.9em;
-        text-transform: uppercase;
-        color: #B0B0B0; /* Slightly dimmer text for labels */
-        margin-bottom: 5px;
+        .icon-close::before {
+                content: '✕';
+
     }
 
-    .dialog-location {
-        font-size: 1.8em;
-        font-weight: bold;
-        color: white;
-        margin-top: 0;
-        margin-bottom: 25px;
+        .icon-warning::before {
+                content: '⚠';
+
     }
 
-    /* Info grid for time reported and estimated restore time */
-    .info-grid {
-        display: flex;
-        justify-content: space-around;
-        gap: 15px;
-        margin-bottom: 25px;
+        .dialog-body {
+                text-align: center;
+
     }
 
-    .info-box {
-        background-color: #444; /* Slightly lighter box background */
-        border-radius: 8px;
-        padding: 15px;
-        flex: 1; /* Distribute space evenly */
-        text-align: center;
+        .dialog-title {
+                font-size: 0.9em;
+                text-transform: uppercase;
+                color: #666;
+                  margin-bottom: 5px;
+
     }
 
-    .info-label {
-        font-size: 0.8em;
-        color: #B0B0B0;
-        margin-bottom: 5px;
-        margin-top: 0;
+        .dialog-location {
+                font-size: 1.8em;
+                font-weight: bold;
+                color: #222;
+                margin-top: 0;
+                margin-bottom: 25px;
+
     }
 
-    .info-value {
-        font-size: 1.6em;
-        font-weight: bold;
-        color: white;
-        margin-bottom: 5px;
-        margin-top: 0;
+        .info-grid {
+                display: flex;
+                justify-content: space-around;
+                gap: 15px;
+                margin-bottom: 25px;
+
     }
 
-    .info-date {
-        font-size: 0.8em;
-        color: #B0B0B0;
-        margin-top: 0;
+        .info-box {
+                background-color: #e8e8e8;
+                border-radius: 8px;
+                padding: 15px;
+                flex: 1;
+                text-align: center;
+
     }
 
-    /* Customers affected section */
-    .customers-affected {
-        background-color: #555; /* A bit darker than info-box */
-        border-radius: 8px;
-        padding: 12px 15px;
-        margin-bottom: 25px;
-        font-size: 1.1em;
-        font-weight: bold;
-        color: white;
+        .info-label {
+                font-size: 0.8em;
+                color: #666;
+                margin-bottom: 5px;
+                margin-top: 0;
+
     }
 
-    /* Apology message */
-    .apology-message {
-        font-size: 0.95em;
-        line-height: 1.4;
-        color: #E0E0E0;
-        margin-bottom: 30px;
-        padding: 0 5px; /* Slight padding to prevent text touching edges */
+        .info-value {
+                font-size: 1.6em;
+                font-weight: bold;
+                color: #222;
+                margin-bottom: 5px;
+                margin-top: 0;
+
     }
 
-    /* Keep me updated button */
-    .keep-updated-button {
-        background-color: #007BFF; /* A vibrant blue, adjust to your theme */
-        color: white;
-        border: none;
-        border-radius: 8px;
-        padding: 12px 25px;
-        font-size: 1.1em;
-        font-weight: bold;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        width: auto; /* Adjust width to content */
-        min-width: 180px; /* Minimum width */
-        margin-bottom: 10px; /* Space from bottom of card */
+        .info-date {
+                font-size: 0.8em;
+                color: #666;
+                margin-top: 0;
+
     }
 
-        .keep-updated-button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
-        }
+        .customers-affected {
+                background-color: #e8e8e8;
+                  border-radius: 8px;
+                padding: 12px 15px;
+                margin-bottom: 25px;
+                font-size: 1.1em;
+                font-weight: bold;
+                color: #222;
+
+    }
+
+        .apology-message {
+                font-size: 0.95em;
+                line-height: 1.4;
+                color: #444;
+                margin-bottom: 30px;
+                padding: 0 5px;
+
+    }
+
+        .keep-updated-button {
+                background-color: #007BFF;
+                  color: white;
+                border: none;
+                border-radius: 8px;
+                padding: 12px 25px;
+                font-size: 1.1em;
+                font-weight: bold;
+                cursor: pointer;
+                transition: background-color 0.2s;
+                width: auto;
+                  min-width: 180px;
+                  margin-bottom: 10px;
+
+    }
+
+            .keep-updated-button:hover {
+                    background-color: #0056b3;
+
+    }
 
 </style>
 

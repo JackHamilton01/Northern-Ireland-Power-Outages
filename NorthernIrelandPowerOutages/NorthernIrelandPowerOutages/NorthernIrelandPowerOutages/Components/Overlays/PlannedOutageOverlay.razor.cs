@@ -56,7 +56,7 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
 
                 if (hasValidRestoreDate)
                 {
-                    faultRestoreDate = restoreDate.ToShortDateString();
+                    faultRestoreDate = Fault.EstRestoreFullDateTime;
                 }
             }
 

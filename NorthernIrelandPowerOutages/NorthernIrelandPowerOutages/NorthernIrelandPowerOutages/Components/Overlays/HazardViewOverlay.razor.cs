@@ -34,5 +34,12 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
 
             return path;
         }
+        private void DeleteHazard(Microsoft.AspNetCore.Components.Web.MouseEventArgs args)
+        {
+            DbContext.Hazards.Remove(Hazard);
+            DbContext.SaveChanges();
+
+            OnClose.InvokeAsync();
+        }
     }
 }

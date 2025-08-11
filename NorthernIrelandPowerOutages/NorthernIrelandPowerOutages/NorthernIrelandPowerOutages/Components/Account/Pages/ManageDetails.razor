@@ -1,0 +1,105 @@
+﻿@page "/manage-details"
+@using Domain.Backend
+@using Infrastructure.Data
+@using Microsoft.Build.Framework
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using Microsoft.EntityFrameworkCore
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject ApplicationDbContext DbContext
+@rendermode InteractiveServer
+
+<div class="d-flex flex-column align-items-center justify-content-start" style="min-height: 100vh; padding: 1rem;">
+    <h2 class="mb-4">Manage Your Details</h2>
+
+    <div class="card p-4" style="max-width: 400px; width: 100%;">
+        <div class="mb-3">
+            <label class="form-label fw-semibold">Email</label>
+            <input class="form-control" value="@userEmail" disabled />
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold" for="phoneInput">Phone Number</label>
+            <div class="input-group">
+                <span class="input-group-text">+44</span>
+                <InputText id="phoneInput" class="form-control" @bind-Value="phoneNumber" />
+            </div>
+        </div>
+
+        <button class="btn btn-primary" @onclick="SaveChanges">Save</button>
+
+        @if (saveSuccess)
+        {
+            <div class="text-success mt-2">Phone number saved</div>
+        }
+        else
+        {
+            <div class="text-danger mt-2">A valid phone number is required</div>
+        }
+    </div>
+</div>
+
+@code {
+    private string userEmail;
+    private string phoneNumber;
+
+    private bool saveSuccess = true;
+    private ApplicationUser authenticatedUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal claimsPrincipal = authState.User;
+
+        if (claimsPrincipal.Identity?.IsAuthenticated == true)
+        {
+            string? userId = claimsPrincipal.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (userId is not null)
+            {
+                authenticatedUser = DbContext.Users.First(u => u.Id == userId);
+
+                userEmail = authenticatedUser.Email;
+                phoneNumber = authenticatedUser.PhoneNumber;
+            }
+        }
+    }
+
+    private void SaveChanges()
+    {
+        var phone = phoneNumber; 
+
+        if (!ValidateAndNormalizePhoneNumber(ref phone))
+        {
+            saveSuccess = false;
+            return;
+        }
+
+        phoneNumber = phone;
+        saveSuccess = true;
+    }
+
+    private bool ValidateAndNormalizePhoneNumber(ref string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            return false;
+        }
+
+        var digitsOnly = new string(phoneNumber.Where(char.IsDigit).ToArray());
+
+        if (digitsOnly.Length == 11 && digitsOnly.StartsWith('0'))
+        {
+            digitsOnly = digitsOnly.Substring(1);
+        }
+
+        if (digitsOnly.Length != 10)
+        {
+            return false;
+        }
+
+        phoneNumber = digitsOnly;
+
+        return true;
+    }
+}

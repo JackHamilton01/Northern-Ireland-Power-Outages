@@ -30,7 +30,7 @@ namespace Domain.Backend
                 County = address.County,
                 PostCode = address.PostCode,
                 Latitude = address.Latitude,
-                Longitude = address.Longitude
+                Longitude = address.Longitude,
             };
         }
     }

@@ -7,5 +7,6 @@ namespace FaultPredictionService
     {
         Task<List<PredictionUI>?> GetFaultPredictions();
         Task<bool> Train(IEnumerable<OutagePredictionTrainingData> outagePredictionTrainingData);
+        Task<double> GetPrediction(double latitude, double longitude);
     }
 }

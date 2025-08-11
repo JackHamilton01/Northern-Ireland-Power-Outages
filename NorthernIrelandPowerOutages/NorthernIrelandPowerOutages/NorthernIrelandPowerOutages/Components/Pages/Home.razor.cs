@@ -41,18 +41,20 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private bool showMultiplePinOverlay = false;
         private bool showUploadSelectOverlay = false;
         private bool showUploadServiceOverlay = false;
-        private OutageMessage? selectedFault;
+        private bool showPredictionOverlay = false;
         private bool showFaultOverlay = false;
         private bool showPlannedOutageOverlay = false;
+        private bool showFavouriteOverlay = false;
+
+        private OutageMessage? selectedFault;
         private List<GoogleMapPin>? childPins;
 
         private double newMarkerLatitude;
         private double newMarkerLongitude;
-
-        private void HideHazardViewOverlay() => showHazardViewOverlay = false;
+        private double predictionLatitude;
+        private double predictionLongitude;
 
         private HazardUI activeHazard;
-
         private bool IsHomePage =>
            string.IsNullOrEmpty(NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
 
@@ -89,7 +91,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
                     markers.Add(new GoogleMapPin()
                     {
-                        Name = outageMessage.OutageId,
+                        Name = $"Active Outage: {outageMessage.OutageId}",
                         StatusMessage = outageMessage.StatusMessage,
                         Latitude = latitude,
                         Longitude = longitude,
@@ -105,7 +107,6 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                 markers.Add(homePin);
             }
 
-            Debug.WriteLine("Getting favourite addresses");
             var favouriteAddresses = await GetFavouriteAddresses();
             if (favouriteAddresses is not null)
             {
@@ -132,13 +133,20 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
         private async Task GetAllServicesAndDisplay()
         {
-            var services = await Http.GetFromJsonAsync<List<ServiceUI>>("https://localhost:7228/services");
-
-            JsonSerializerOptions options = new()
+            try
             {
-                PropertyNameCaseInsensitive = true,
-            };
-            DisplayServices(services);
+                var services = await Http.GetFromJsonAsync<List<ServiceUI>>("https://localhost:7228/services");
+
+                JsonSerializerOptions options = new()
+                {
+                    PropertyNameCaseInsensitive = true,
+                };
+                DisplayServices(services);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.Message);
+            }
         }
 
         private async Task GetAllFaultPredictions()
@@ -224,20 +232,27 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
         private async void FaultPollingService_OnFaultsUpdated(FaultModel? faultData, bool isFirstPoll)
         {
-            await DisplayFaults(faultData);
-
-            if (IsHomePage)
+            try
             {
-                await module.InvokeVoidAsync("updateMarkers", markers);
-                await CalculateCountyOutages();
-            }
+                await DisplayFaults(faultData);
 
-            if (isFirstPoll && homePin is not null)
+                if (IsHomePage)
+                {
+                    await module.InvokeVoidAsync("updateMarkers", markers);
+                    await CalculateCountyOutages();
+                }
+
+                if (isFirstPoll && homePin is not null)
+                {
+                    //await module.InvokeVoidAsync("MoveToLocation", homePin.Latitude, homePin.Longitude);
+                }
+
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
             {
-                //await module.InvokeVoidAsync("MoveToLocation", homePin.Latitude, homePin.Longitude);
+                Debug.WriteLine(ex.Message);
             }
-
-            await InvokeAsync(StateHasChanged);
         }
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -408,6 +423,20 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
                 showHazardViewOverlay = true;
             }
+            else if (googleMapPin.MarkerType == MarkerType.Prediction)
+            {
+                predictionLatitude = googleMapPin.Latitude;
+                predictionLongitude = googleMapPin.Longitude;
+
+                showPredictionOverlay = true;
+            }
+            else if (googleMapPin.MarkerType == MarkerType.Favourite)
+            {
+                predictionLatitude = googleMapPin.Latitude;
+                predictionLongitude = googleMapPin.Longitude;
+
+                showFavouriteOverlay = true;
+            }
             else
             {
                 showModal = true;
@@ -419,9 +448,10 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             showModal = false;
         }
 
-        private async Task ZoomIn() => await module.InvokeVoidAsync("zoomMap", 1);
-        private async Task ZoomOut() => await module.InvokeVoidAsync("zoomMap", -1);
-        private async Task ToggleGeoJson() => await module.InvokeVoidAsync("toggleGeoJson", countyOutages);
+        private async Task ToggleGeoJson()
+        {
+            await module.InvokeVoidAsync("toggleGeoJson", countyOutages);
+        }
 
         public void SendMessage()
         {
@@ -490,6 +520,21 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             }
         }
 
+        private async Task HideHazardViewOverlay()
+        {
+             showHazardViewOverlay = false;
+
+            await GetAllHazardsAndDisplay();
+
+            await module.InvokeVoidAsync("updateMarkers", markers);
+        }
+
+        private void HideFavouriteOverlay()
+        {
+            showFavouriteOverlay = false;
+        }
+
+
         private async Task HideMultiplePinOverlay(GoogleMapPin googleMapPin)
         {
             showMultiplePinOverlay = false;
@@ -524,6 +569,11 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             await module.InvokeVoidAsync("updateMarkers", markers);
         }
 
+        private async Task HidePredictionOverlay()
+        {
+            showPredictionOverlay = false;
+        }
+
         private void HideFaultOverlay()
         {
             showFaultOverlay = false;
@@ -534,6 +584,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         {
             showUploadHazardOverlay = false;
             await GetAllHazardsAndDisplay();
+            await HandleApproximateMarkerLocations();
 
             await module.InvokeVoidAsync("updateMarkers", markers);
         }

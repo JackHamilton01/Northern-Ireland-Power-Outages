@@ -4,71 +4,66 @@
 
 <div class="overlay">
     <div class="overlay-content">
+        <div class="dialog-header">
+            <button class="icon-button" aria-label="Delete hazard" @onclick="DeleteHazard">
+                <i class="bi bi-trash"></i>
+            </button>
 
-        <h1>Hazard Details</h1>
+            <h1>Hazard Details</h1>
 
-        @if (Hazard != null)
-        {
-            <div>
-                <label for="title" class="form-label fw-bold">Title</label>
-                <p id="title" class="form-control-plaintext">@Hazard.Title</p>
-            </div>
-            <div class="mt-3">
-                <label for="description" class="form-label fw-bold">Description</label>
-                <p id="description" class="form-control-plaintext">@Hazard.Description</p>
-            </div>
+            <button class="icon-button" @onclick="CloseOverlay" aria-label="Close overlay">
+                <span class="icon-close"></span>
+            </button>
+        </div>
 
-            @if (Hazard.Images != null && Hazard.Images.Any())
+        <div class="dialog-body">
+            @if (Hazard != null)
             {
-                <div class="mt-4">
-                    <label class="form-label fw-bold">Images</label>
-                    <div id="hazardImagesCarousel" class="carousel slide" data-bs-ride="carousel">
-                        <div class="carousel-inner">
-                            @foreach (var image in Hazard.Images)
+                <div>
+                    <label for="title" class="form-label fw-bold">Title</label>
+                    <p id="title" class="form-control-plaintext">@Hazard.Title</p>
+                </div>
+                <div class="mt-3">
+                    <label for="description" class="form-label fw-bold">Description</label>
+                    <p id="description" class="form-control-plaintext">@Hazard.Description</p>
+                </div>
+
+                @if (Hazard.Images != null && Hazard.Images.Any())
+                {
+                    <div class="mt-4">
+                        <div id="hazardImagesCarousel" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @foreach (var image in Hazard.Images)
+                                {
+                                    <div class="carousel-item @(Hazard.Images.IndexOf(image) == 0 ? "active" : "")">
+                                        <img src="@GetImagePreviewUrl(image.FileName)" alt="@Hazard.Title" style="max-width:100%; max-height:300px; object-fit:contain; display:block; margin:0 auto; border-radius:8px;" />
+                                    </div>
+                                }
+                            </div>
+                            @if (Hazard.Images.Count > 1)
                             {
-                                <div class="carousel-item @(Hazard.Images.IndexOf(image) == 0 ? "active" : "")">
-                                    <img src="@GetImagePreviewUrl(image.FileName)" class="d-block w-100 img-fluid rounded" alt="@Hazard.Title">
-                                </div>
+                                <button class="carousel-control-prev" type="button" data-bs-target="#hazardImagesCarousel" data-bs-slide="prev">
+                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Previous</span>
+                                </button>
+                                <button class="carousel-control-next" type="button" data-bs-target="#hazardImagesCarousel" data-bs-slide="next">
+                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                    <span class="visually-hidden">Next</span>
+                                </button>
                             }
                         </div>
-                        @if (Hazard.Images.Count > 1)
-                        {
-                            <button class="carousel-control-prev" type="button" data-bs-target="#hazardImagesCarousel" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#hazardImagesCarousel" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        }
                     </div>
-                </div>
+                }
+                else
+                {
+                    <p class="mt-3 text-muted">No images available for this hazard.</p>
+                }
             }
             else
             {
-                <p class="mt-3 text-muted">No images available for this hazard.</p>
+                <p>Loading hazard details...</p>
             }
-
-            @* Example of displaying other read-only properties if they exist on your Hazard entity *@
-            @*
-            <div class="mt-3">
-                <label class="form-label fw-bold">Location</label>
-                <p class="form-control-plaintext">@Hazard.Latitude, @Hazard.Longitude</p>
-            </div>
-            <div class="mt-3">
-                <label class="form-label fw-bold">Reported On</label>
-                <p class="form-control-plaintext">@Hazard.ReportedDate.ToShortDateString()</p>
-            </div>
-            *@
-
-        }
-        else
-        {
-            <p>Loading hazard details...</p>
-        }
-
-        <button class="btn btn-secondary mt-4" @onclick="CloseOverlay">Close</button>
+        </div>
     </div>
 </div>
 
@@ -84,22 +79,110 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        padding: 1rem; /* some padding so overlay-content doesn't touch edges on small screens */
     }
 
     .overlay-content {
-        background-color: white;
+        background-color: #f0f0f0;
         padding: 2rem;
         border-radius: 8px;
-        max-width: 600px; /* Limit the width for better readability */
-        width: 90%;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        max-height: 90vh; /* Allow scrolling if content is too long */
+        max-width: 700px;
+        width: 100%;
+        max-height: 85vh;
         overflow-y: auto;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        text-align: left;
     }
 
-    /* Adjust carousel image size if needed */
+    .dialog-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 15px;
+        gap: 1rem;
+    }
+
+        .dialog-header h1 {
+            flex-grow: 1;
+            text-align: center;
+            margin: 0;
+        }
+
+    .icon-button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #333;
+        font-size: 1.5em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 5px;
+        border-radius: 50%;
+        transition: background-color 0.2s;
+        width: 36px;
+        height: 36px;
+    }
+
+        .icon-button:hover {
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+    .icon-bin::before {
+        content: '🗑️'; 
+        font-size: 1.4em;
+    }
+
+    .icon-close::before {
+        content: '✕';
+    }
+
+    .dialog-body h1 {
+        margin-bottom: 1rem;
+        text-align: center;
+    }
+
+    label.form-label {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
+        color: #444;
+    }
+
+    p.form-control-plaintext {
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: #222;
+        font-size: 1rem;
+    }
+
+    .carousel-inner {
+        max-height: 400px;
+        overflow: hidden;
+        border-radius: 6px;
+    }
+
     .carousel-item img {
-        max-height: 400px; /* Example max height for carousel images */
-        object-fit: contain; /* Ensures the whole image is visible, scales down if needed */
+        max-height: 400px;
+        max-width: 100%;
+        object-fit: contain;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 6px;
+    }
+
+    .hazard-image {
+        max-width: 100%; 
+        max-height: 300px;
+        object-fit: contain; 
+        display: block;
+        margin: 0 auto; 
+        border-radius: 8px; 
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        filter: invert(33%) sepia(99%) saturate(4343%) hue-rotate(196deg) brightness(97%) contrast(104%);
     }
 </style>

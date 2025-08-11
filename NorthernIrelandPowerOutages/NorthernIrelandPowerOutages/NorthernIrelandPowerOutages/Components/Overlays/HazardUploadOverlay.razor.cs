@@ -22,10 +22,10 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
         private IBrowserFile? file = null;
         private bool isMaxNumberOfImages => uploadedImages.Count != 3;
 
-        [Parameter] 
+        [Parameter]
         public RenderFragment? ChildContent { get; set; }
 
-        [Parameter] 
+        [Parameter]
         public EventCallback OnClose { get; set; }
 
         [Parameter]
@@ -60,19 +60,18 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
         {
             try
             {
-                string relativePath = await CaptureFile();
                 hazardInput.Images = new();
                 foreach (var image in uploadedImages)
                 {
                     hazardInput.Images.Add(new()
                     {
-                        FileName = relativePath,
+                        FileName = image.RelativePath,
                     });
 
                     isSaving = true;
                     StateHasChanged();
 
-                    var result = await LlavaClient.CallLlavaAsync(Path.Combine(config.GetValue<string>("FileStorage"), relativePath),
+                    var result = await LlavaClient.CallLlavaAsync(Path.Combine(config.GetValue<string>("FileStorage"), image.RelativePath),
                         $"Is this an image of {hazardInput.Title}. Start your reply with either Yes or No," +
                         $"then separating with a semi-colon(;)" +
                         $"describe the image provided");
@@ -84,6 +83,8 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
                     if (llavaResponse[0].StartsWith("No"))
                     {
                         isSaving = false;
+                        errors.Add(response);
+                        response = string.Empty;
                         return;
                     }
                 }
@@ -111,56 +112,57 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
             file = e.File;
 
             var previewUrl = await GetImagePreviewUrl(file);
-            uploadedImages.Add(new ImageWithPreviewUI
+
+            ImageWithPreviewUI? imageWithPreview = new ImageWithPreviewUI
             {
-                File = file,
-                PreviewUrl = previewUrl
-            });
+                File = e.File,
+                PreviewUrl = previewUrl,
+            };
+
+            uploadedImages.Add(imageWithPreview);
+            imageWithPreview.RelativePath = await CaptureFile(imageWithPreview);
         }
 
-        private async Task<string> CaptureFile()
+        private async Task<string> CaptureFile(ImageWithPreviewUI image)
         {
             if (file is null)
             {
-                return "";
+                return string.Empty;
             }
 
-            foreach (var image in uploadedImages)
+            try
             {
-                try
+                string newFileName = Path.ChangeExtension(
+                    Path.GetRandomFileName(),
+                    Path.GetExtension(image.File.Name)); // Trust extension from upload but not file name
+
+                string? fileStorageLocation = config.GetValue<string>("FileStorage");
+                if (string.IsNullOrWhiteSpace(fileStorageLocation))
                 {
-                    string newFileName = Path.ChangeExtension(
-                        Path.GetRandomFileName(),
-                        Path.GetExtension(image.File.Name)); // Trust extension from upload but not file name
-
-                    string? fileStorageLocation = config.GetValue<string>("FileStorage");
-                    if (string.IsNullOrWhiteSpace(fileStorageLocation))
-                    {
-                        throw new Exception("File storage location is not configured.");
-                    }
-
-                    string path = Path.Combine(
-                        fileStorageLocation,
-                        "jhamilton",
-                        newFileName);
-
-                    string relativePath = Path.Combine(
-                        "jhamilton",
-                        newFileName);
-
-                    Directory.CreateDirectory(Path.Combine(
-                        fileStorageLocation,
-                        "jhamilton"));
-
-                    await using FileStream fs = new(path, FileMode.Create);
-                    await file.OpenReadStream(maxFileSize).CopyToAsync(fs);
-                    return relativePath;
+                    throw new Exception("File storage location is not configured.");
                 }
-                catch (Exception)
-                {
-                    errors.Add($"Error: unable to upload file {file.Name}");
-                    throw;
-                }
+
+                string path = Path.Combine(
+                    fileStorageLocation,
+                    "jhamilton",
+                    newFileName);
+
+                string relativePath = Path.Combine(
+                    "jhamilton",
+                    newFileName);
+
+                Directory.CreateDirectory(Path.Combine(
+                    fileStorageLocation,
+                    "jhamilton"));
+
+                await using FileStream fs = new(path, FileMode.Create);
+                await image.File.OpenReadStream(maxFileSize).CopyToAsync(fs);
+                return relativePath;
+            }
+            catch (Exception)
+            {
+                errors.Add($"Error: unable to upload file {file.Name}");
+                throw;
             }
 
             return null;

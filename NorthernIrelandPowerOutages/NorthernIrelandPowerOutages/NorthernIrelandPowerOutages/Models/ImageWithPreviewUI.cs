@@ -6,5 +6,6 @@ namespace NorthernIrelandPowerOutages.Models
     {
         public IBrowserFile File { get; set; }
         public string PreviewUrl { get; set; }
+        public string RelativePath { get; internal set; }
     }
 }

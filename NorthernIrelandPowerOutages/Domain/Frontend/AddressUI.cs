@@ -28,7 +28,7 @@ namespace Domain.Frontend
                 County = this.County,
                 PostCode = this.PostCode,
                 Latitude = this.Latitude,
-                Longitude = this.Longitude
+                Longitude = this.Longitude,
             };
         }
 
@@ -44,7 +44,7 @@ namespace Domain.Frontend
                 County = ui.County,
                 PostCode = ui.PostCode,
                 Latitude = ui.Latitude,
-                Longitude = ui.Longitude
+                Longitude = ui.Longitude,
             };
         }
 

@@ -19,38 +19,54 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         private string? streetNumber = string.Empty;
         private string? streetName = string.Empty;
         private string? postCode = string.Empty;
-        private string? errorMessage = string.Empty;
+
+        private string? streetMessage = string.Empty;
+        private string? nameMessage = string.Empty;
+        private string? postCodeMessage = string.Empty;
 
         private List<string> searchResults;
         private bool isSearchResultFavourited = false;
+        private ApplicationUser? authenticatedUser;
 
-        protected override void OnInitialized()
+        protected async override Task OnInitializedAsync()
         {
+            authenticatedUser = await GetAuthenticatedUser();
+
             FaultPollingService.OnFaultsReceived += FaultPollingService_OnFaultsUpdated;
             fault = FaultPollingService.CurrentFault;
         }
 
         public async Task SearchByPostCode()
         {
+            bool isError = false;
+            streetMessage = string.Empty;
+            nameMessage = string.Empty;
+            postCodeMessage = string.Empty;
+
             if (string.IsNullOrWhiteSpace(streetNumber))
             {
-                errorMessage = "Street number is required";
-                return;
+                streetMessage = "Street number is required";
+                isError = true;
             }
             if (string.IsNullOrWhiteSpace(streetName))
             {
-                errorMessage = "Street name is required";
-                return;
+                nameMessage = "Street name is required";
+                isError = true;
             }
             if (string.IsNullOrWhiteSpace(postCode))
             {
-                errorMessage = "Postcode is required";
-                return;
+                postCodeMessage = "Postcode is required";
+                isError = true;
             }
 
             if (!PostCodeHelper.IsValidUkPostcode(postCode))
             {
-                errorMessage = "A valid postcode is required";
+                postCodeMessage = "A valid postcode is required";
+                isError = true;
+            }
+
+            if (isError)
+            {
                 return;
             }
 
@@ -183,7 +199,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
             isSearchResultFavourited = true;
         }
 
-        private async Task<ApplicationUser> GetAuthenticatedUser()
+        private async Task<ApplicationUser?> GetAuthenticatedUser()
         {
             AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             ClaimsPrincipal claimsPrincipal = authState.User;

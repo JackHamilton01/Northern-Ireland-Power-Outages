@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using static System.Net.WebRequestMethods;
 
 namespace FaultPredictionService
 {
@@ -38,7 +39,7 @@ namespace FaultPredictionService
             this.httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
             this.dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
-            faultPollingService.OnFaultsReceived += OnFaultsReceived;
+            //faultPollingService.OnFaultsReceived += OnFaultsReceived;
         }
 
         private List<OutagePredictionTrainingData> SelectOutageMessages(IEnumerable<OutageMessage> outageMessages)
@@ -122,6 +123,23 @@ namespace FaultPredictionService
             return await httpClient.GetFromJsonAsync<List<PredictionUI>>("http://127.0.0.1:5000/predicted-outages");
         }
 
+        public async Task<double> GetPrediction(double latitude, double longitude)
+        {
+            var outagesJson = new
+            {
+                lat = latitude,
+                lon = longitude
+            };
+
+            string requestUrl = "http://127.0.0.1:5000/predict";
+
+            HttpResponseMessage response = await httpClient.PostAsJsonAsync(requestUrl, outagesJson);
+            OutagePredictionResult? result = await response.Content.ReadFromJsonAsync<OutagePredictionResult>();
+
+            return result.Probability;
+        }
+
+
         public (double Latitude, double Longitude) GetRandomNILocation()
         {
             double minLat = 54.0;
@@ -139,6 +157,21 @@ namespace FaultPredictionService
         {
             [JsonPropertyName("outages")]
             public List<OutagePredictionTrainingData> Outages { get; set; }
+        }
+
+        private class GeoPoint
+        {
+            [JsonPropertyName("lat")]
+            public double Latitude { get; set; }
+
+            [JsonPropertyName("lon")]
+            public double Longitude { get; set; }
+        }
+
+        private class OutagePredictionResult
+        {
+            [JsonPropertyName("outage_probability")]
+            public double Probability { get; set; }
         }
     }
 }
