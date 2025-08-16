@@ -78,11 +78,6 @@ namespace FaultPredictionService
 
         private async void OnFaultsReceived(FaultModel? faults, bool isFirstPoll)
         {
-            //using (var scope = _scopeFactory.CreateScope()) 
-            //{
-            //    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            //} 
-
             var faultTrainingData = SelectOutageMessages(faults.OutageMessage);
 
             List<OutagePredictionTrainingData> noFaultTrainingData = new();

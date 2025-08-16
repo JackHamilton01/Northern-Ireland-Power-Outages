@@ -64,6 +64,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
         StringComparer.OrdinalIgnoreCase);
 
         List<GoogleMapPin> markers = new();
+        private bool? isAuthenticated;
 
         protected async override Task OnInitializedAsync()
         {
@@ -257,7 +258,11 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
-            if (firstRender)
+            AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            ClaimsPrincipal claimsPrincipal = authState.User;
+            isAuthenticated = claimsPrincipal.Identity?.IsAuthenticated;
+
+                if (firstRender)
             {
                 dotNetObjectReference = DotNetObjectReference.Create(this);
 
@@ -389,7 +394,8 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
             if (googleMapPin.MarkerType == MarkerType.Fault)
             {
-                var outageId = googleMapPin.Name;
+                string? outageId = googleMapPin.Name;
+                outageId = outageId.Replace("Active Outage: ", "");
                 selectedFault = await Http.GetFromJsonAsync<OutageMessage>($"https://localhost:7125/faults/{outageId}");
 
                 showFaultOverlay = true;

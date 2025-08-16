@@ -60,6 +60,19 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
         {
             try
             {
+                errors.Clear();
+
+                if (string.IsNullOrWhiteSpace(hazardInput.Title))
+                {
+                    errors.Add("A title is required");
+                    return;
+                }
+                if (uploadedImages.Count == 0)
+                {
+                    errors.Add("Atleast one image is required");
+                    return;
+                }
+
                 hazardInput.Images = new();
                 foreach (var image in uploadedImages)
                 {
@@ -80,7 +93,8 @@ namespace NorthernIrelandPowerOutages.Components.Overlays
                     var llavaResponse = result.Response.Split(';');
                     response = llavaResponse[1];
 
-                    if (llavaResponse[0].StartsWith("No"))
+                    if (llavaResponse[0].StartsWith("No") ||
+                        llavaResponse[0].StartsWith(" No"))
                     {
                         isSaving = false;
                         errors.Add(response);

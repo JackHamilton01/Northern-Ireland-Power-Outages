@@ -8,6 +8,8 @@ namespace FaultService
 {
     public class FaultPollingService : IFaultPollingService
     {
+        private CancellationTokenSource cancellationTokenSource;
+
         private readonly HttpClient httpClient;
         private bool isFirstPoll = true;
 
@@ -35,6 +37,11 @@ namespace FaultService
 
                 await Task.Delay(delay, cancellationToken);
             }
+        }
+
+        public async Task Stop()
+        {
+            cancellationTokenSource.Cancel();
         }
 
         private async Task GetCurrentFaults()

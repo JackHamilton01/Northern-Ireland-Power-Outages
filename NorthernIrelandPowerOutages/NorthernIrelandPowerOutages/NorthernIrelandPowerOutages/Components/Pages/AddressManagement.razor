@@ -190,6 +190,10 @@
         if (addressToRemove != null)
         {
             addresses.Remove(addressToRemove);
+
+            var addr = DbContext.Addresses.Find(addressToRemove.Id);
+            DbContext.Addresses.Remove(addr);
+            DbContext.SaveChanges();
         }
     }
 

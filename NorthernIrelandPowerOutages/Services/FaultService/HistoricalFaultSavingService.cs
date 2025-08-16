@@ -75,16 +75,17 @@ namespace FaultService
                                     {
                                         ApplicationUser? user = dbContext.Users.FirstOrDefault(u => u.Id == preference.ApplicationUserId);
 
-                                        string powerOutageMessage = $"There has been a power outage at {favouritedAddress.StreetNumber} {favouritedAddress.StreetName}, {favouritedAddress.PostCode}";
+                                        string powerOutageMessage = $"There has been a power outage at {favouritedAddress.StreetNumber} " +
+                                            $"{favouritedAddress.StreetName}, {favouritedAddress.PostCode}";
 
                                         if (!preference.AlertSent)
                                         {
                                             if (preference.EmailAlertsEnabled)
                                             {
-                                                //await emailSender.SendEmailAsync(
-                                                //    user.Email,
-                                                //    $"Power Outage - {favouritedAddress.StreetNumber} {favouritedAddress.StreetName}",
-                                                //    powerOutageMessage);
+                                                await emailSender.SendEmailAsync(
+                                                    user.Email,
+                                                    $"Power Outage - {favouritedAddress.StreetNumber} {favouritedAddress.StreetName}",
+                                                    powerOutageMessage);
                                             }
                                             if (preference.SmsAlertsEnabled)
                                             {

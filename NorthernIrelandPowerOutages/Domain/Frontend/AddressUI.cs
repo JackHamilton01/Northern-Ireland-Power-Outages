@@ -16,22 +16,6 @@ namespace Domain.Frontend
         public bool EmailAlertsEnabled { get; set; }
         public bool SmsAlertsEnabled { get; set; }
 
-        public AddressUI Clone()
-        {
-            return new AddressUI
-            {
-                Id = this.Id,
-                StreetNumber = this.StreetNumber,
-                StreetName = this.StreetName,
-                BuildingDetails = this.BuildingDetails,
-                City = this.City,
-                County = this.County,
-                PostCode = this.PostCode,
-                Latitude = this.Latitude,
-                Longitude = this.Longitude,
-            };
-        }
-
         public static implicit operator Address(AddressUI ui)
         {
             return new Address

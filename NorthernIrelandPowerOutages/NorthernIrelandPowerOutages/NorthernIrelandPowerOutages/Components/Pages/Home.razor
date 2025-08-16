@@ -129,11 +129,15 @@
                 C
             </button>
 
-            <button class="mb-5 btn @(isPlacingMarkers ? "btn-warning" : "btn-primary")"
-                    style="width: 40px; height: 40px; border-radius: 50%; padding: 0; font-weight: bold; font-size: 1.2rem; text-align: center;"
-                    @onclick="ToggleMarkerPlacement">
-                <i class="bi bi-pin-angle-fill"></i>
-            </button>
+
+            @if (isAuthenticated is not null && isAuthenticated.Value)
+            {
+                <button class="mb-5 btn @(isPlacingMarkers ? "btn-warning" : "btn-primary")"
+                        style="width: 40px; height: 40px; border-radius: 50%; padding: 0; font-weight: bold; font-size: 1.2rem; text-align: center;"
+                        @onclick="ToggleMarkerPlacement">
+                    <i class="bi bi-pin-angle-fill"></i>
+                </button>
+            }
 
 @*             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 @foreach (var kvp in countyOutages)

@@ -179,7 +179,8 @@ namespace NorthernIrelandPowerOutages.Components.Pages
 
                     if (!isExistingAddress)
                     {
-                        DbContext.Add(backendAddress); 
+                        DbContext.Addresses.Add(backendAddress); 
+                        DbContext.SaveChanges();
                     }
 
                     var newUserAddressPreference = new FavouriteAddressPreferences
@@ -193,7 +194,7 @@ namespace NorthernIrelandPowerOutages.Components.Pages
                     user.FavouriteAddressPreferences.Add(newUserAddressPreference);
                 }
 
-                await DbContext.SaveChangesAsync();
+                DbContext.SaveChanges();
             }
 
             isSearchResultFavourited = true;

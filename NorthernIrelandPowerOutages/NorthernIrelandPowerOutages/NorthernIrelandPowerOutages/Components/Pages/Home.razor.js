@@ -105,7 +105,7 @@ function getMarkerIconUrl(iconName) {
         iconUrl = "/Images/Map/Default.png";
     }
     else if (iconName === "Home") {
-        iconUrl = "/Images/Map/Home.png";
+        iconUrl = "/Images/Map/Default.png";
     }
     else if (iconName === "Favourite") {
         iconUrl = "/Images/Map/Favourite.png";
